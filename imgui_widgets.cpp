@@ -716,12 +716,12 @@ bool ImGui::ButtonEx( const char* label, const ImVec2& size_arg, ImGuiButtonFlag
     bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
     // Render
-    const ImU32 col = ((held && hovered) ? gui.button_active.to_im_color() : hovered ? gui.button_hovered.to_im_color() : gui.button.to_im_color());
+    const ImU32 col = ImGui::GetColorU32((held && hovered) ? ImGuiCol_ButtonActive : hovered ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
     RenderNavHighlight(bb, id);
     RenderFrame(bb.Min, bb.Max, col, 0, 4);
-    window->DrawList->AddRect(bb.Min, bb.Max, gui.border.to_im_color(), 4);
+    window->DrawList->AddRect(bb.Min, bb.Max, ImGui::GetColorU32(ImGuiCol_Border), 4);
 
-    window->DrawList->AddText(bb.GetCenter() - label_size / 2, hovered ? gui.text.to_im_color() : gui.text_disabled.to_im_color(), label);
+    window->DrawList->AddText(bb.GetCenter() - label_size / 2, ImGui::GetColorU32(hovered ? ImGuiCol_Text : ImGuiCol_TextDisabled), label);
 
     return pressed;
 }
