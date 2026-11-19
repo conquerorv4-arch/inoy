@@ -108,21 +108,21 @@ jobs:
       - name: Configure Mach-O linker (ld64.lld)
         run: |
           mkdir -p "$THEOS/toolchain/linux/iphone/bin"
-          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name 'ld64.lld*' -type f -executable | sort -V | tail -n 1 || true)
-          LLD_BIN=$(command -v lld || find /usr/bin -name 'lld*' -type f -executable | grep -v 'ld64' | sort -V | tail -n 1 || true)
+          LD64_BIN=$(find /usr/bin /usr/lib -name 'ld64.lld*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
+          LLD_BIN=$(find /usr/bin /usr/lib -name 'lld*' -type f -executable 2>/dev/null | grep -v 'ld64' | sort -V | tail -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            TARGET_LD="$LD64_BIN"
-            USE_DARWIN_FLAVOR="0"
+            RESOLVED_LD="$LD64_BIN"
+            NEED_DARWIN_FLAVOR="0"
           elif [ -n "$LLD_BIN" ]; then
-            TARGET_LD="$LLD_BIN"
-            USE_DARWIN_FLAVOR="1"
+            RESOLVED_LD="$LLD_BIN"
+            NEED_DARWIN_FLAVOR="1"
           else
             echo "XETA: ld64.lld ve ya lld tapilmadi."
             exit 1
           fi
 
-          echo "Secilen linker: $TARGET_LD (flavor=$USE_DARWIN_FLAVOR)"
+          echo "Tapilan linker: $RESOLVED_LD (darwin_flavor=$NEED_DARWIN_FLAVOR)"
 
           python3 -c '
           import os, stat, textwrap
@@ -130,8 +130,8 @@ jobs:
               #!/usr/bin/env python3
               import os, sys
 
-              target = os.environ["TARGET_LD"]
-              flavor = os.environ.get("USE_DARWIN_FLAVOR", "0") == "1"
+              target = os.environ.get("TARGET_LD") or "__RESOLVED_LD__"
+              flavor = (os.environ.get("USE_DARWIN_FLAVOR") or "__NEED_DARWIN_FLAVOR__") == "1"
               args = sys.argv[1:]
               out = []
               has_plat = False
@@ -165,27 +165,19 @@ jobs:
                   cmd = [target] + out
 
               os.execvp(cmd[0], cmd)
-          """)
+          """).replace("__RESOLVED_LD__", os.environ["RESOLVED_LD"]).replace("__NEED_DARWIN_FLAVOR__", os.environ["NEED_DARWIN_FLAVOR"])
           ld_path = "/opt/theos/toolchain/linux/iphone/bin/ld"
           with open(ld_path, "w", encoding="utf-8") as f:
               f.write(code)
           os.chmod(ld_path, os.stat(ld_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-          '
-          TARGET_LD="$TARGET_LD" USE_DARWIN_FLAVOR="$USE_DARWIN_FLAVOR" /opt/theos/toolchain/linux/iphone/bin/ld --version || true
+          ' RESOLVED_LD="$RESOLVED_LD" NEED_DARWIN_FLAVOR="$NEED_DARWIN_FLAVOR"
+
+          /opt/theos/toolchain/linux/iphone/bin/ld --version || true
 
       - name: Build tweak with existing Makefile
         run: |
           export THEOS=/opt/theos
           export PATH="$THEOS/toolchain/linux/iphone/bin:$PATH"
-          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name 'ld64.lld*' -type f -executable | sort -V | tail -n 1 || true)
-          LLD_BIN=$(command -v lld || find /usr/bin -name 'lld*' -type f -executable | grep -v 'ld64' | sort -V | tail -n 1 || true)
-          if [ -n "$LD64_BIN" ]; then
-            export TARGET_LD="$LD64_BIN"
-            export USE_DARWIN_FLAVOR="0"
-          else
-            export TARGET_LD="$LLD_BIN"
-            export USE_DARWIN_FLAVOR="1"
-          fi
           make clean
           make package FINALPACKAGE=1 || make
 
