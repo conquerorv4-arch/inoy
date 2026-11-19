@@ -10919,7 +10919,7 @@ FVector BelowRoot = Root;
 
 
 
-    UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
+    static UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
     if (GRWAR)
     {
         std::vector < ASTExtraGrenadeBase * >GrenadeBase;
