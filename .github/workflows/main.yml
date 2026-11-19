@@ -29,6 +29,22 @@ jobs:
             sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
           fi
 
+      - name: Install iOS SDK
+        run: |
+          sudo mkdir -p "$THEOS/sdks"
+          if [ ! -d "$THEOS/sdks/iPhoneOS16.5.sdk" ]; then
+            curl -fSL "https://github.com/theos/sdks/archive/refs/heads/master.zip" -o /tmp/theos_sdks.zip || true
+            if [ -s /tmp/theos_sdks.zip ]; then
+              unzip -q /tmp/theos_sdks.zip -d /tmp/theos_sdks_ext
+              SDK_DIR=$(find /tmp/theos_sdks_ext -maxdepth 3 -type d -name "iPhoneOS*.sdk" | sort -V | tail -n 1 || true)
+              if [ -n "$SDK_DIR" ]; then
+                sudo cp -r "$SDK_DIR" "$THEOS/sdks/"
+              fi
+            fi
+            rm -rf /tmp/theos_sdks.zip /tmp/theos_sdks_ext
+          fi
+          ls -la "$THEOS/sdks"
+
       - name: Configure Mach-O linker, strip and ldid
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
