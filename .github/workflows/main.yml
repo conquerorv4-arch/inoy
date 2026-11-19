@@ -108,17 +108,21 @@ jobs:
       - name: Configure Mach-O linker (ld64.lld)
         run: |
           mkdir -p "$THEOS/toolchain/linux/iphone/bin"
-          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name "ld64.lld*" | head -n 1 || true)
-          LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
+          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name 'ld64.lld*' -type f -executable | sort -V | tail -n 1 || true)
+          LLD_BIN=$(command -v lld || find /usr/bin -name 'lld*' -type f -executable | grep -v 'ld64' | sort -V | tail -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            export TARGET_LD="$LD64_BIN"
+            TARGET_LD="$LD64_BIN"
+            USE_DARWIN_FLAVOR="0"
           elif [ -n "$LLD_BIN" ]; then
-            export TARGET_LD="$LLD_BIN"
+            TARGET_LD="$LLD_BIN"
+            USE_DARWIN_FLAVOR="1"
           else
             echo "XETA: ld64.lld ve ya lld tapilmadi."
             exit 1
           fi
+
+          echo "Secilen linker: $TARGET_LD (flavor=$USE_DARWIN_FLAVOR)"
 
           python3 -c '
           import os, stat, textwrap
@@ -127,6 +131,7 @@ jobs:
               import os, sys
 
               target = os.environ["TARGET_LD"]
+              flavor = os.environ.get("USE_DARWIN_FLAVOR", "0") == "1"
               args = sys.argv[1:]
               out = []
               has_plat = False
@@ -154,7 +159,7 @@ jobs:
               if not has_plat:
                   out.extend(["-platform_version", "ios", min_ver, sdk_ver])
 
-              if os.path.basename(target).startswith("lld") and "-flavor" not in out:
+              if flavor and "-flavor" not in out:
                   cmd = [target, "-flavor", "darwin"] + out
               else:
                   cmd = [target] + out
@@ -166,15 +171,21 @@ jobs:
               f.write(code)
           os.chmod(ld_path, os.stat(ld_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
           '
-          TARGET_LD="$TARGET_LD" /opt/theos/toolchain/linux/iphone/bin/ld --version || true
+          TARGET_LD="$TARGET_LD" USE_DARWIN_FLAVOR="$USE_DARWIN_FLAVOR" /opt/theos/toolchain/linux/iphone/bin/ld --version || true
 
       - name: Build tweak with existing Makefile
         run: |
           export THEOS=/opt/theos
           export PATH="$THEOS/toolchain/linux/iphone/bin:$PATH"
-          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name "ld64.lld*" | head -n 1 || true)
-          LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
-          export TARGET_LD="${LD64_BIN:-$LLD_BIN}"
+          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name 'ld64.lld*' -type f -executable | sort -V | tail -n 1 || true)
+          LLD_BIN=$(command -v lld || find /usr/bin -name 'lld*' -type f -executable | grep -v 'ld64' | sort -V | tail -n 1 || true)
+          if [ -n "$LD64_BIN" ]; then
+            export TARGET_LD="$LD64_BIN"
+            export USE_DARWIN_FLAVOR="0"
+          else
+            export TARGET_LD="$LLD_BIN"
+            export USE_DARWIN_FLAVOR="1"
+          fi
           make clean
           make package FINALPACKAGE=1 || make
 
