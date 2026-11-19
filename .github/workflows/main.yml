@@ -23,41 +23,64 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential clang lld llvm make git curl xz-utils unzip \
+            build-essential clang lld llvm make git curl xz-utils unzip zstd \
             python3 perl rsync zip tar fakeroot dpkg ca-certificates jq
 
       - name: Setup Theos, Toolchain and iOS SDK
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
 
-          # Linux iOS Toolchain yükləmə
+          # Linux iOS Toolchain yükləmə (rate limit-ə qarşı ehtiyat yoxlamalı)
           mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone"
-          TC_URL=$(curl -s https://api.github.com/repos/theos/toolchain/releases/latest \
-            | jq -r '.assets[].browser_download_url' \
+          RELEASES_JSON=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/theos/toolchain/releases || true)
+
+          TC_URL=$(echo "$RELEASES_JSON" \
+            | jq -r '.. | .browser_download_url? // empty' \
             | grep -iE 'linux.*(x86_64|amd64).*(tar\.(xz|gz|bz2|zst)|zip)' \
-            | head -n 1)
+            | head -n 1 || true)
 
-          echo "Downloading toolchain: $TC_URL"
-          curl -L "$TC_URL" -o /tmp/toolchain/tc.archive
-
-          if [[ "$TC_URL" == *.tar.xz ]]; then
-            tar -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
-          elif [[ "$TC_URL" == *.tar.gz || "$TC_URL" == *.tgz ]]; then
-            tar -xzf /tmp/toolchain/tc.archive -C /tmp/toolchain
-          elif [[ "$TC_URL" == *.tar.bz2 ]]; then
-            tar -xjf /tmp/toolchain/tc.archive -C /tmp/toolchain
-          elif [[ "$TC_URL" == *.zip ]]; then
-            unzip -q /tmp/toolchain/tc.archive -d /tmp/toolchain
-          fi
-
-          rm -f /tmp/toolchain/tc.archive
-          INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 2 -type d -name "bin" -exec dirname {} \; | head -n 1)
-          if [ -n "$INNER_DIR" ]; then
-            cp -a "$INNER_DIR"/. "$THEOS/toolchain/linux/iphone/"
+          if [ -z "$TC_URL" ]; then
+            echo "API asset tapılmadı, theos/toolchain repozitoriyasını yoxlayırıq..."
+            git clone --depth 1 https://github.com/theos/toolchain.git /tmp/tc-repo || true
+            TC_ARCHIVE=$(find /tmp/tc-repo -type f \( -name "*linux*x86_64*.tar.*" -o -name "*linux*amd64*.tar.*" -o -name "*linux*.zip" \) | head -n 1 || true)
+            if [ -n "$TC_ARCHIVE" ]; then
+              cp "$TC_ARCHIVE" /tmp/toolchain/tc.archive
+              TC_URL="local://$TC_ARCHIVE"
+            fi
           else
-            cp -a /tmp/toolchain/. "$THEOS/toolchain/linux/iphone/"
+            echo "Downloading toolchain: $TC_URL"
+            curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" "$TC_URL" -o /tmp/toolchain/tc.archive
           fi
-          rm -rf /tmp/toolchain
+
+          if [ -s /tmp/toolchain/tc.archive ]; then
+            FILE_TYPE=$(file -b /tmp/toolchain/tc.archive || true)
+            if [[ "$TC_URL" == *.tar.xz || "$FILE_TYPE" == *"XZ"* ]]; then
+              tar -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
+            elif [[ "$TC_URL" == *.tar.zst || "$FILE_TYPE" == *"Zstandard"* ]]; then
+              tar --zstd -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
+            elif [[ "$TC_URL" == *.tar.gz || "$TC_URL" == *.tgz || "$FILE_TYPE" == *"gzip"* ]]; then
+              tar -xzf /tmp/toolchain/tc.archive -C /tmp/toolchain
+            elif [[ "$TC_URL" == *.tar.bz2 || "$FILE_TYPE" == *"bzip2"* ]]; then
+              tar -xjf /tmp/toolchain/tc.archive -C /tmp/toolchain
+            elif [[ "$TC_URL" == *.zip || "$FILE_TYPE" == *"Zip"* ]]; then
+              unzip -q /tmp/toolchain/tc.archive -d /tmp/toolchain
+            fi
+            rm -f /tmp/toolchain/tc.archive
+            INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 2 -type d -name "bin" -exec dirname {} \; | head -n 1 || true)
+            if [ -n "$INNER_DIR" ]; then
+              cp -a "$INNER_DIR"/. "$THEOS/toolchain/linux/iphone/"
+            else
+              cp -a /tmp/toolchain/. "$THEOS/toolchain/linux/iphone/"
+            fi
+          else
+            echo "XƏTA: Linux iOS toolchain arxivi yüklənmədi."
+            exit 1
+          fi
+          rm -rf /tmp/toolchain /tmp/tc-repo
 
           # iOS SDK quraşdırma
           mkdir -p "$THEOS/sdks"
