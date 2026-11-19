@@ -22,6 +22,13 @@ jobs:
             build-essential clang lld llvm make git curl xz-utils unzip zstd file \
             python3 perl rsync zip tar fakeroot dpkg ca-certificates jq
 
+      - name: Install Theos
+        run: |
+          if [ ! -d "$THEOS/makefiles" ]; then
+            sudo rm -rf "$THEOS"
+            sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
+          fi
+
       - name: Configure Mach-O linker, strip and ldid
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
