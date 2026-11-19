@@ -206,4 +206,24 @@ void setSpeedPlayer(bool state) {
     setSpeedPlayer(sender.isOn);
 }
 
+@interface Engine : NSObject
+@end
+
+@implementation Engine
+
++ (void)load {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            @try {
+                // Buraya ümumi başlatma kodunu qoy
+            } @catch (__unused NSException *exception) {
+                // Xətanı ud
+            }
+        });
+    });
+}
+
+@end
+
 @end
