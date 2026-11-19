@@ -105,7 +105,7 @@ jobs:
           ls -la "$THEOS/toolchain/linux/iphone/bin" || true
           ls -la "$THEOS/sdks" || true
 
-      - name: Configure Mach-O linker (ld64.lld)
+      - name: Configure Mach-O linker (lld)
         run: |
           mkdir -p "$THEOS/toolchain/linux/iphone/bin"
           LD64_BIN=$(find /usr/bin /usr/lib -name 'ld64.lld*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
@@ -124,54 +124,48 @@ jobs:
 
           echo "Tapilan linker: $RESOLVED_LD (darwin_flavor=$NEED_DARWIN_FLAVOR)"
 
-          python3 -c '
-          import os, stat, textwrap
-          code = textwrap.dedent("""\
-              #!/usr/bin/env python3
-              import os, sys
+          sudo tee /opt/theos/toolchain/linux/iphone/bin/ld >/dev/null <<EOF
+#!/usr/bin/env python3
+import os, sys
 
-              target = os.environ.get("TARGET_LD") or "__RESOLVED_LD__"
-              flavor = (os.environ.get("USE_DARWIN_FLAVOR") or "__NEED_DARWIN_FLAVOR__") == "1"
-              args = sys.argv[1:]
-              out = []
-              has_plat = False
-              min_ver = "14.0"
-              sdk_ver = "16.5"
+target = "$RESOLVED_LD"
+flavor = "$NEED_DARWIN_FLAVOR" == "1"
+args = sys.argv[1:]
+out = []
+has_plat = False
+min_ver = "14.0"
+sdk_ver = "16.5"
 
-              i = 0
-              while i < len(args):
-                  a = args[i]
-                  if a == "-platform_version":
-                      has_plat = True
-                      out.append(a)
-                  elif a == "-iphoneos_version_min":
-                      if i + 1 < len(args):
-                          min_ver = args[i + 1]
-                          i += 1
-                  elif a == "-sdk_version":
-                      if i + 1 < len(args):
-                          sdk_ver = args[i + 1]
-                          i += 1
-                  else:
-                      out.append(a)
-                  i += 1
+i = 0
+while i < len(args):
+    a = args[i]
+    if a == "-platform_version":
+        has_plat = True
+        out.append(a)
+    elif a == "-iphoneos_version_min":
+        if i + 1 < len(args):
+            min_ver = args[i + 1]
+            i += 1
+    elif a == "-sdk_version":
+        if i + 1 < len(args):
+            sdk_ver = args[i + 1]
+            i += 1
+    else:
+        out.append(a)
+    i += 1
 
-              if not has_plat:
-                  out.extend(["-platform_version", "ios", min_ver, sdk_ver])
+if not has_plat:
+    out.extend(["-platform_version", "ios", min_ver, sdk_ver])
 
-              if flavor and "-flavor" not in out:
-                  cmd = [target, "-flavor", "darwin"] + out
-              else:
-                  cmd = [target] + out
+if flavor and "-flavor" not in out:
+    cmd = [target, "-flavor", "darwin"] + out
+else:
+    cmd = [target] + out
 
-              os.execvp(cmd[0], cmd)
-          """).replace("__RESOLVED_LD__", os.environ["RESOLVED_LD"]).replace("__NEED_DARWIN_FLAVOR__", os.environ["NEED_DARWIN_FLAVOR"])
-          ld_path = "/opt/theos/toolchain/linux/iphone/bin/ld"
-          with open(ld_path, "w", encoding="utf-8") as f:
-              f.write(code)
-          os.chmod(ld_path, os.stat(ld_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-          ' RESOLVED_LD="$RESOLVED_LD" NEED_DARWIN_FLAVOR="$NEED_DARWIN_FLAVOR"
+os.execvp(cmd[0], cmd)
+EOF
 
+          sudo chmod +x /opt/theos/toolchain/linux/iphone/bin/ld
           /opt/theos/toolchain/linux/iphone/bin/ld --version || true
 
       - name: Build tweak with existing Makefile
