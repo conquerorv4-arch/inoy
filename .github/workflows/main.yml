@@ -1,214 +1,96 @@
-name: Build M7MD Tweak
+mkdir -p "$THEOS/toolchain/linux/iphone/bin[span_2](start_span)"[span_2](end_span)
+LD64_BIN=$(find /usr/bin /usr/lib -name 'ld64.lld*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)[span_3](start_span)[span_3](end_span)
+LLD_BIN=$(find /usr/bin /usr/lib -name 'lld*' -type f -executable 2>/dev/null | grep -v 'ld64' | sort -V | tail -n 1 || true)[span_4](start_span)[span_4](end_span)
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+if [ -n "$LD64_BIN" ]; then[span_5](start_span)[span_5](end_span)
+  RESOLVED_LD="$LD64_BIN[span_6](start_span)"[span_6](end_span)
+  NEED_DARWIN_FLAVOR="0[span_7](start_span)"[span_7](end_span)
+elif [ -n "$LLD_BIN" ]; then[span_8](start_span)[span_8](end_span)
+  RESOLVED_LD="$LLD_BIN[span_9](start_span)"[span_9](end_span)
+  NEED_DARWIN_FLAVOR="1[span_10](start_span)"[span_10](end_span)
+else[span_11](start_span)[span_11](end_span)
+  echo "XETA: ld64.lld ve ya lld tapilmadi.[span_12](start_span)"[span_12](end_span)
+  exit 1[span_13](start_span)[span_13](end_span)
+fi[span_14](start_span)[span_14](end_span)
 
-permissions:
-  contents: write
+LD_WRAPPER="/opt/theos/toolchain/linux/iphone/bin/ld[span_15](start_span)"[span_15](end_span)
+sudo rm -f "$LD_WRAPPER[span_16](start_span)"[span_16](end_span)
+{[span_17](start_span)[span_17](end_span)
+  echo '#!/usr/bin/env bash[span_18](start_span)'[span_18](end_span)
+  echo 'ARGS=()[span_19](start_span)'[span_19](end_span)
+  echo 'HAS_PLAT=0[span_20](start_span)'[span_20](end_span)
+  echo 'MIN_VER="14.0"[span_21](start_span)'[span_21](end_span)
+  echo 'SDK_VER="16.5"[span_22](start_span)'[span_22](end_span)
+  echo 'while [ $# -gt 0 ]; do[span_23](start_span)'[span_23](end_span)
+  echo '  case "$1" in[span_24](start_span)'[span_24](end_span)
+  echo '    -platform_version) HAS_PLAT=1; ARGS+=("$1") ;;[span_25](start_span)'[span_25](end_span)
+  echo '    -iphoneos_version_min) shift; [ $# -gt 0 ] && MIN_VER="$1" ;;[span_26](start_span)'[span_26](end_span)
+  echo '    -sdk_version) shift; [ $# -gt 0 ] && SDK_VER="$1" ;;[span_27](start_span)'[span_27](end_span)
+  echo '    *) ARGS+=("$1") ;;[span_28](start_span)'[span_28](end_span)
+  echo '  esac[span_29](start_span)'[span_29](end_span)
+  echo '  shift[span_30](start_span)'[span_30](end_span)
+  echo 'done[span_31](start_span)'[span_31](end_span)
+  echo 'if [ "$HAS_PLAT" -eq 0 ]; then[span_32](start_span)'[span_32](end_span)
+  echo '  ARGS+=(-platform_version ios "$MIN_VER" "$SDK_VER")[span_33](start_span)'[span_33](end_span)
+  echo 'fi[span_34](start_span)'[span_34](end_span)
+  if [ "$NEED_DARWIN_FLAVOR" = "1" ]; then[span_35](start_span)[span_35](end_span)
+    echo "exec \"$RESOLVED_LD\" -flavor darwin \"\${ARGS[@]}\"[span_36](start_span)"[span_36](end_span)
+  else[span_37](start_span)[span_37](end_span)
+    echo "exec \"$RESOLVED_LD\" \"\${ARGS[@]}\"[span_38](start_span)"[span_38](end_span)
+  fi[span_39](start_span)[span_39](end_span)
+} | sudo tee "$LD_WRAPPER" >/dev/null[span_40](start_span)[span_40](end_span)
+sudo chmod +x "$LD_WRAPPER[span_41](start_span)"[span_41](end_span)
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    env:
-      THEOS: /opt/theos
-      GIT_TERMINAL_PROMPT: "0"
+# strip qurulumu (llvm-strip)[span_42](start_span)[span_42](end_span)
+STRIP_BIN=$(find /usr/bin /usr/lib /usr/lib/llvm* -name 'llvm-strip*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)[span_43](start_span)[span_43](end_span)
+STRIP_TARGETS=(
+  "$THEOS/toolchain/linux/iphone/bin/strip"
+  "/usr/local/bin/strip"
+)
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+if [ -n "$STRIP_BIN" ]; then
+  for target in "${STRIP_TARGETS[@]}"; do
+    sudo mkdir -p "$(dirname "$target")"
+    sudo ln -sf "$STRIP_BIN" "$target"
+  done
+else
+  for target in "${STRIP_TARGETS[@]}"; do
+    sudo mkdir -p "$(dirname "$target")"
+    printf '#!/usr/bin/env bash\nexit 0\n' | sudo tee "$target" >/dev/null
+    sudo chmod +x "$target"
+  done
+fi
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential clang lld llvm make git curl xz-utils unzip zstd file \
-            python3 perl rsync zip tar fakeroot dpkg ca-certificates jq
+# ldid qurulumu[span_44](start_span)[span_44](end_span)
+LDID_URL=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN:-}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/ProcursusTeam/ldid/releases/latest" \
+  | jq -r '.assets[].browser_download_url' \
+  | grep -iE 'linux.*(x86_64|amd64)' \
+  | head -n 1 || true)[span_45](start_span)[span_45](end_span)
 
-      - name: Setup Theos, Toolchain and iOS SDK
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
+if [ -n "$LDID_URL" ]; then[span_46](start_span)[span_46](end_span)
+  curl -fSL -H "Authorization: Bearer ${GH_TOKEN:-}" "$LDID_URL" -o /tmp/ldid.bin || true
+  if [ -s /tmp/ldid.bin ]; then[span_47](start_span)[span_47](end_span)
+    if file -b /tmp/ldid.bin | grep -qiE 'gzip|xz|zip|tar'; then[span_48](start_span)[span_48](end_span)
+      mkdir -p /tmp/ldid_ext[span_49](start_span)[span_49](end_span)
+      tar -xf /tmp/ldid.bin -C /tmp/ldid_ext 2>/dev/null || unzip -q /tmp/ldid.bin -d /tmp/ldid_ext 2>/dev/null || true[span_50](start_span)[span_50](end_span)
+      FOUND_LDID=$(find /tmp/ldid_ext -name 'ldid*' -type f | head -n 1 || true)[span_51](start_span)[span_51](end_span)
+      [ -n "$FOUND_LDID" ] && cp "$FOUND_LDID" /tmp/ldid_ready || true[span_52](start_span)[span_52](end_span)
+    else[span_53](start_span)[span_53](end_span)
+      cp /tmp/ldid.bin /tmp/ldid_ready[span_54](start_span)[span_54](end_span)
+    fi[span_55](start_span)[span_55](end_span)
+  fi[span_56](start_span)[span_56](end_span)
+fi[span_57](start_span)[span_57](end_span)
 
-          mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone/bin"
-          TC_URL=""
-
-          for repo in "theos/toolchain" "ProcursusTeam/toolchain"; do
-            ASSETS_JSON=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${repo}/releases?per_page=20" || true)
-
-            TC_URL=$(echo "$ASSETS_JSON" \
-              | jq -r '.. | .browser_download_url? // empty' \
-              | grep -iE 'linux.*(x86_64|amd64).*(tar\.(xz|gz|bz2|zst)|tgz|zip)' \
-              | head -n 1 || true)
-
-            if [ -n "$TC_URL" ]; then
-              echo "Toolchain tapildi ($repo): $TC_URL"
-              break
-            fi
-          done
-
-          if [ -n "$TC_URL" ]; then
-            curl -fSL -H "Authorization: Bearer ${GH_TOKEN}" "$TC_URL" -o /tmp/toolchain/tc.archive || true
-          fi
-
-          if [ ! -s /tmp/toolchain/tc.archive ]; then
-            echo "Release asset tapilmadi, install skripti yoxlanilir..."
-            curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos -o /tmp/install-theos.sh || true
-            grep -Eo 'https://[^"[:space:]]+(toolchain|iphone|linux)[^"[:space:]]*\.(tar\.(xz|gz|bz2|zst)|tgz|zip)' /tmp/install-theos.sh | head -n 1 > /tmp/tc_url.txt || true
-            TC_URL=$(cat /tmp/tc_url.txt || true)
-            if [ -n "$TC_URL" ]; then
-              echo "Skriptden tapilan URL: $TC_URL"
-              curl -fSL "$TC_URL" -o /tmp/toolchain/tc.archive || true
-            fi
-          fi
-
-          if [ -s /tmp/toolchain/tc.archive ]; then
-            FILE_TYPE=$(file -b /tmp/toolchain/tc.archive || true)
-            if [[ "$TC_URL" == *.tar.xz || "$FILE_TYPE" == *"XZ"* ]]; then
-              tar -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
-            elif [[ "$TC_URL" == *.tar.zst || "$FILE_TYPE" == *"Zstandard"* ]]; then
-              tar --zstd -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
-            elif [[ "$TC_URL" == *.tar.gz || "$TC_URL" == *.tgz || "$FILE_TYPE" == *"gzip"* ]]; then
-              tar -xzf /tmp/toolchain/tc.archive -C /tmp/toolchain
-            elif [[ "$TC_URL" == *.tar.bz2 || "$FILE_TYPE" == *"bzip2"* ]]; then
-              tar -xjf /tmp/toolchain/tc.archive -C /tmp/toolchain
-            elif [[ "$TC_URL" == *.zip || "$FILE_TYPE" == *"Zip"* ]]; then
-              unzip -q /tmp/toolchain/tc.archive -d /tmp/toolchain
-            fi
-            rm -f /tmp/toolchain/tc.archive
-            INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 3 -type d -name "bin" -exec dirname {} \; | head -n 1 || true)
-            if [ -n "$INNER_DIR" ]; then
-              cp -a "$INNER_DIR"/. "$THEOS/toolchain/linux/iphone/"
-            else
-              cp -a /tmp/toolchain/. "$THEOS/toolchain/linux/iphone/"
-            fi
-          else
-            echo "XETA: Linux iOS toolchain arxivi yuklenmedi."
-            exit 1
-          fi
-          rm -rf /tmp/toolchain /tmp/install-theos.sh /tmp/tc_url.txt
-
-          mkdir -p "$THEOS/sdks"
-          git clone --depth 1 https://github.com/theos/sdks.git /tmp/theos-sdks
-          SDK_DIR=$(find /tmp/theos-sdks -maxdepth 2 -name "iPhoneOS*.sdk" | sort -V | tail -n 1 || true)
-          if [ -n "$SDK_DIR" ]; then
-            cp -r "$SDK_DIR" "$THEOS/sdks/"
-          fi
-          rm -rf /tmp/theos-sdks
-
-          sudo chown -R "$USER:$USER" "$THEOS"
-          ls -la "$THEOS/toolchain/linux/iphone/bin" || true
-          ls -la "$THEOS/sdks" || true
-
-      - name: Configure Mach-O linker, strip and ldid
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p "$THEOS/toolchain/linux/iphone/bin"
-          LD64_BIN=$(find /usr/bin /usr/lib -name 'ld64.lld*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
-          LLD_BIN=$(find /usr/bin /usr/lib -name 'lld*' -type f -executable 2>/dev/null | grep -v 'ld64' | sort -V | tail -n 1 || true)
-
-          if [ -n "$LD64_BIN" ]; then
-            RESOLVED_LD="$LD64_BIN"
-            NEED_DARWIN_FLAVOR="0"
-          elif [ -n "$LLD_BIN" ]; then
-            RESOLVED_LD="$LLD_BIN"
-            NEED_DARWIN_FLAVOR="1"
-          else
-            echo "XETA: ld64.lld ve ya lld tapilmadi."
-            exit 1
-          fi
-
-          LD_WRAPPER="/opt/theos/toolchain/linux/iphone/bin/ld"
-          sudo rm -f "$LD_WRAPPER"
-          {
-            echo '#!/usr/bin/env bash'
-            echo 'ARGS=()'
-            echo 'HAS_PLAT=0'
-            echo 'MIN_VER="14.0"'
-            echo 'SDK_VER="16.5"'
-            echo 'while [ $# -gt 0 ]; do'
-            echo '  case "$1" in'
-            echo '    -platform_version) HAS_PLAT=1; ARGS+=("$1") ;;'
-            echo '    -iphoneos_version_min) shift; [ $# -gt 0 ] && MIN_VER="$1" ;;'
-            echo '    -sdk_version) shift; [ $# -gt 0 ] && SDK_VER="$1" ;;'
-            echo '    *) ARGS+=("$1") ;;'
-            echo '  esac'
-            echo '  shift'
-            echo 'done'
-            echo 'if [ "$HAS_PLAT" -eq 0 ]; then'
-            echo '  ARGS+=(-platform_version ios "$MIN_VER" "$SDK_VER")'
-            echo 'fi'
-            if [ "$NEED_DARWIN_FLAVOR" = "1" ]; then
-              echo "exec \"$RESOLVED_LD\" -flavor darwin \"\${ARGS[@]}\""
-            else
-              echo "exec \"$RESOLVED_LD\" \"\${ARGS[@]}\""
-            fi
-          } | sudo tee "$LD_WRAPPER" >/dev/null
-          sudo chmod +x "$LD_WRAPPER"
-
-          # strip qurulumu (llvm-strip)
-          STRIP_BIN=$(find /usr/bin /usr/lib -name 'llvm-strip*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
-          if [ -n "$STRIP_BIN" ]; then
-            sudo ln -sf "$STRIP_BIN" "$THEOS/toolchain/linux/iphone/bin/strip"
-            sudo ln -sf "$STRIP_BIN" /usr/local/bin/strip
-          fi
-
-          # ldid qurulumu
-          LDID_URL=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/ProcursusTeam/ldid/releases/latest" \
-            | jq -r '.assets[].browser_download_url' \
-            | grep -iE 'linux.*(x86_64|amd64)' \
-            | head -n 1 || true)
-
-          if [ -n "$LDID_URL" ]; then
-            curl -fSL -H "Authorization: Bearer ${GH_TOKEN}" "$LDID_URL" -o /tmp/ldid.bin || true
-            if [ -s /tmp/ldid.bin ]; then
-              if file -b /tmp/ldid.bin | grep -qiE 'gzip|xz|zip|tar'; then
-                mkdir -p /tmp/ldid_ext
-                tar -xf /tmp/ldid.bin -C /tmp/ldid_ext 2>/dev/null || unzip -q /tmp/ldid.bin -d /tmp/ldid_ext 2>/dev/null || true
-                FOUND_LDID=$(find /tmp/ldid_ext -name 'ldid*' -type f | head -n 1 || true)
-                [ -n "$FOUND_LDID" ] && cp "$FOUND_LDID" /tmp/ldid_ready || true
-              else
-                cp /tmp/ldid.bin /tmp/ldid_ready
-              fi
-            fi
-          fi
-
-          if [ -s /tmp/ldid_ready ]; then
-            chmod +x /tmp/ldid_ready
-            sudo cp /tmp/ldid_ready /usr/local/bin/ldid
-            sudo cp /tmp/ldid_ready "$THEOS/toolchain/linux/iphone/bin/ldid"
-          else
-            # Ehtiyat: imzalama komandini tehlukesiz keciren stub
-            printf '#!/usr/bin/env bash\nexit 0\n' | sudo tee /usr/local/bin/ldid >/dev/null
-            printf '#!/usr/bin/env bash\nexit 0\n' | sudo tee "$THEOS/toolchain/linux/iphone/bin/ldid" >/dev/null
-            sudo chmod +x /usr/local/bin/ldid "$THEOS/toolchain/linux/iphone/bin/ldid"
-          fi
-          rm -rf /tmp/ldid.bin /tmp/ldid_ext /tmp/ldid_ready
-
-      - name: Build tweak with existing Makefile
-        run: |
-          export THEOS=/opt/theos
-          export PATH="$THEOS/toolchain/linux/iphone/bin:/usr/local/bin:$PATH"
-          make clean
-          make package FINALPACKAGE=1 || make
-
-      - name: Collect .deb and .dylib into compiled_output
-        run: |
-          mkdir -p compiled_output
-          find . -maxdepth 4 -type f \( -name "*.deb" -o -name "*.dylib" \) ! -path "./compiled_output/*" -exec cp -v {} compiled_output/ \;
-          ls -lh compiled_output/
-
-      - name: Upload compiled artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: M7MD-compiled-output
-          path: compiled_output/
-          if-no-files-found: warn
+if [ -s /tmp/ldid_ready ]; then[span_58](start_span)[span_58](end_span)
+  chmod +x /tmp/ldid_ready[span_59](start_span)[span_59](end_span)
+  sudo cp /tmp/ldid_ready /usr/local/bin/ldid[span_60](start_span)[span_60](end_span)
+  sudo cp /tmp/ldid_ready "$THEOS/toolchain/linux/iphone/bin/ldid[span_61](start_span)"[span_61](end_span)
+else[span_62](start_span)[span_62](end_span)
+  # Ehtiyat: imzalama komandini tehlukesiz keciren stub[span_63](start_span)[span_63](end_span)
+  printf '#!/usr/bin/env bash\nexit 0\n' | sudo tee /usr/local/bin/ldid >/dev/null[span_64](start_span)[span_64](end_span)
+  printf '#!/usr/bin/env bash\nexit 0\n' | sudo tee "$THEOS/toolchain/linux/iphone/bin/ldid" >/dev/null[span_65](start_span)[span_65](end_span)
+  sudo chmod +x /usr/local/bin/ldid "$THEOS/toolchain/linux/iphone/bin/ldid[span_66](start_span)"[span_66](end_span)
+fi[span_67](start_span)[span_67](end_span)
+rm -rf /tmp/ldid.bin /tmp/ldid_ext /tmp/ldid_ready[span_68](start_span)[span_68](end_span)
