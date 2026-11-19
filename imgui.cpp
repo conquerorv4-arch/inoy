@@ -5925,7 +5925,7 @@ void ImGui::RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar
         if ( flags & ImGuiWindowFlags_NoBackground ) {
 
             window->DrawList->PushClipRect( window->Pos, window->Pos + window->Size );
-            draw_blur( window->DrawList );
+            // draw_blur( window->DrawList );
             window->DrawList->PopClipRect( );
 
             window->DrawList->AddRectFilled( window->Pos, window->Pos + ImVec2( 170, window->Size.y ), GetColorU32( ImGuiCol_WindowBg, 0.9f ), style.WindowRounding, ImDrawFlags_RoundCornersLeft );
