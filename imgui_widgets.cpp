@@ -1,4 +1,7 @@
 #include <unordered_map>
+#ifndef ICON_FA_CHECK
+#define ICON_FA_CHECK "[x]"
+#endif
 #include <string>
 
 
