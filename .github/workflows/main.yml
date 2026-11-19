@@ -33,8 +33,7 @@ jobs:
         run: |
           sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
 
-          # Linux iOS Toolchain yükləmə
-          mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone"
+          mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone/bin"
           TC_URL=""
 
           for repo in "theos/toolchain" "ProcursusTeam/toolchain"; do
@@ -107,15 +106,29 @@ jobs:
           ls -la "$THEOS/toolchain/linux/iphone/bin" || true
           ls -la "$THEOS/sdks" || true
 
-      - name: Configure iOS linker (lld)
+      - name: Configure Mach-O linker (ld64.lld)
         run: |
           mkdir -p "$THEOS/toolchain/linux/iphone/bin"
-          LLD_BIN=$(command -v ld64.lld || command -v lld || find /usr/bin -name "ld64.lld*" -o -name "lld*" | head -n 1 || true)
-          echo "Using linker: $LLD_BIN"
-          if [ -n "$LLD_BIN" ]; then
-            sudo ln -sf "$LLD_BIN" "$THEOS/toolchain/linux/iphone/bin/ld"
-            sudo ln -sf "$LLD_BIN" /usr/local/bin/ld64.lld
+          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name "ld64.lld*" | head -n 1 || true)
+          LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
+
+          if [ -n "$LD64_BIN" ]; then
+            cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
+#!/usr/bin/env bash
+exec "$LD64_BIN" "\$@"
+EOF
+          elif [ -n "$LLD_BIN" ]; then
+            cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
+#!/usr/bin/env bash
+exec "$LLD_BIN" -flavor darwin "\$@"
+EOF
+          else
+            echo "XƏTA: ld64.lld və ya lld tapılmadı."
+            exit 1
           fi
+
+          sudo chmod +x "$THEOS/toolchain/linux/iphone/bin/ld"
+          "$THEOS/toolchain/linux/iphone/bin/ld" --version || true
 
       - name: Build tweak with existing Makefile
         run: |
