@@ -124,49 +124,35 @@ jobs:
 
           echo "Tapilan linker: $RESOLVED_LD (darwin_flavor=$NEED_DARWIN_FLAVOR)"
 
-          sudo tee /opt/theos/toolchain/linux/iphone/bin/ld >/dev/null <<EOF
-#!/usr/bin/env python3
-import os, sys
+          LD_WRAPPER="/opt/theos/toolchain/linux/iphone/bin/ld"
+          sudo rm -f "$LD_WRAPPER"
+          {
+            echo '#!/usr/bin/env bash'
+            echo 'ARGS=()'
+            echo 'HAS_PLAT=0'
+            echo 'MIN_VER="14.0"'
+            echo 'SDK_VER="16.5"'
+            echo 'while [ $# -gt 0 ]; do'
+            echo '  case "$1" in'
+            echo '    -platform_version) HAS_PLAT=1; ARGS+=("$1") ;;'
+            echo '    -iphoneos_version_min) shift; [ $# -gt 0 ] && MIN_VER="$1" ;;'
+            echo '    -sdk_version) shift; [ $# -gt 0 ] && SDK_VER="$1" ;;'
+            echo '    *) ARGS+=("$1") ;;'
+            echo '  esac'
+            echo '  shift'
+            echo 'done'
+            echo 'if [ "$HAS_PLAT" -eq 0 ]; then'
+            echo '  ARGS+=(-platform_version ios "$MIN_VER" "$SDK_VER")'
+            echo 'fi'
+            if [ "$NEED_DARWIN_FLAVOR" = "1" ]; then
+              echo "exec \"$RESOLVED_LD\" -flavor darwin \"\${ARGS[@]}\""
+            else
+              echo "exec \"$RESOLVED_LD\" \"\${ARGS[@]}\""
+            fi
+          } | sudo tee "$LD_WRAPPER" >/dev/null
 
-target = "$RESOLVED_LD"
-flavor = "$NEED_DARWIN_FLAVOR" == "1"
-args = sys.argv[1:]
-out = []
-has_plat = False
-min_ver = "14.0"
-sdk_ver = "16.5"
-
-i = 0
-while i < len(args):
-    a = args[i]
-    if a == "-platform_version":
-        has_plat = True
-        out.append(a)
-    elif a == "-iphoneos_version_min":
-        if i + 1 < len(args):
-            min_ver = args[i + 1]
-            i += 1
-    elif a == "-sdk_version":
-        if i + 1 < len(args):
-            sdk_ver = args[i + 1]
-            i += 1
-    else:
-        out.append(a)
-    i += 1
-
-if not has_plat:
-    out.extend(["-platform_version", "ios", min_ver, sdk_ver])
-
-if flavor and "-flavor" not in out:
-    cmd = [target, "-flavor", "darwin"] + out
-else:
-    cmd = [target] + out
-
-os.execvp(cmd[0], cmd)
-EOF
-
-          sudo chmod +x /opt/theos/toolchain/linux/iphone/bin/ld
-          /opt/theos/toolchain/linux/iphone/bin/ld --version || true
+          sudo chmod +x "$LD_WRAPPER"
+          "$LD_WRAPPER" --version || true
 
       - name: Build tweak with existing Makefile
         run: |
