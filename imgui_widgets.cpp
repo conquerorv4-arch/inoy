@@ -36,7 +36,7 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <windows.h>
+// #include <windows.h>
 
 #include "examples/example_win32_directx11/gui.hpp"
 #include "examples/example_win32_directx11/blur.hpp"
