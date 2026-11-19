@@ -2923,13 +2923,13 @@ bool ImGui::SliderScalar( const char* label, ImGuiDataType data_type, void* p_da
     draw->AddRectFilled( frame_bb.Min, frame_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBgActive ), 5 );
     draw->AddRectFilled( frame_bb.Min, ImVec2( frame_bb.Min.x + value->second, frame_bb.Max.y ), ImGui::GetColorU32( ImGuiCol_SliderGrabActive ), 5 );
     draw->AddCircleFilled( ImVec2( frame_bb.Min.x + value->second - 2, frame_bb.GetCenter( ).y ), 6, ImGui::GetColorU32( ImGuiCol_SliderGrabActive ), 30 );
-    draw->AddRectFilled( number_bb.Min, number_bb.Max, gui.frame_inactive.to_im_color( ), 4 );
+    draw->AddRectFilled( number_bb.Min, number_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), 4 );
     draw->AddRectFilled( number_bb.Min, number_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), 4 );
 
     if ( IsMouseHoveringRect( number_bb.Min, number_bb.Max ) && CalcTextSize( value_buf, value_buf_end ).x > number_bb.GetWidth( ) )
-        GetForegroundDrawList( )->AddText( ImVec2( number_bb.GetCenter( ).x - CalcTextSize( value_buf, value_buf_end ).x / 2, number_bb.Min.y + 1 ), gui.text.to_im_color( ), value_buf, value_buf_end );
+        GetForegroundDrawList( )->AddText( ImVec2( number_bb.GetCenter( ).x - CalcTextSize( value_buf, value_buf_end ).x / 2, number_bb.Min.y + 1 ), ImGui::GetColorU32( ImGuiCol_Text ), value_buf, value_buf_end );
     else
-        draw->AddText( number_bb.Min + ImVec2( 2, 1 ), gui.text.to_im_color( ), value_buf );
+        draw->AddText( number_bb.Min + ImVec2( 2, 1 ), ImGui::GetColorU32( ImGuiCol_Text ), value_buf );
 
     return value_changed;
 }
@@ -4633,9 +4633,9 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     if (!is_multiline)
     {
         RenderNavHighlight(frame_bb, id);
-        RenderFrame(frame_bb.Min, frame_bb.Max, gui.frame_inactive.to_im_color( ), 0, 3);
-        RenderFrame(frame_bb.Min, frame_bb.Max, gui.frame_active.to_im_color( value->second ), 0, 3);
-        window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, gui.border.to_im_color( ), 3);
+        RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), 0, 3);
+        RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBgActive, value->second ), 0, 3);
+        window->DrawList->AddRect(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32( ImGuiCol_Border ), 3);
     }
 
     const ImVec4 clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + inner_size.x, frame_bb.Min.y + inner_size.y); // Not using frame_bb.Max because we have adjusted size
@@ -4868,7 +4868,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         LogRenderedText(&draw_pos, buf_display, buf_display_end);
     }
 
-    window->DrawList->AddText( ImVec2( total_bb.Min.x, frame_bb.GetCenter( ).y - label_size.y / 2 ), gui.text_disabled.to_im_color( ), label );
+    window->DrawList->AddText( ImVec2( total_bb.Min.x, frame_bb.GetCenter( ).y - label_size.y / 2 ), ImGui::GetColorU32( ImGuiCol_TextDisabled ), label );
 
     if (value_changed && !(flags & ImGuiInputTextFlags_NoMarkEdited))
         MarkItemEdited(id);
@@ -5127,7 +5127,7 @@ bool ImGui::ColorEdit4(const char* label, float col[4], ImGuiColorEditFlags flag
         PushStyleVar( ImGuiStyleVar_PopupRounding, 4 );
         PushStyleVar( ImGuiStyleVar_PopupBorderSize, 1 );
         PushStyleVar( ImGuiStyleVar_ItemInnerSpacing, ImVec2( 8, 12 ) );
-        PushStyleColor( ImGuiCol_PopupBg, gui.frame_inactive.to_vec4( ) );
+        PushStyleColor( ImGuiCol_PopupBg, GetStyleColorVec4( ImGuiCol_PopupBg ) );
 
         if (BeginPopup("picker"))
         {
@@ -5561,20 +5561,19 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
     else if (flags & ImGuiColorEditFlags_PickerHueBar)
     {
         // Render SV Square
-        draw_list->AddRectFilledMultiColorRounded(picker_pos, picker_pos + ImVec2(sv_picker_size, sv_picker_size), gui.frame_inactive.to_im_color( ), col_white, hue_color32, hue_color32, col_white, 4);
-        draw_list->AddRectFilledMultiColorRounded(picker_pos, picker_pos + ImVec2(sv_picker_size, sv_picker_size), gui.frame_inactive.to_im_color( ), 0, 0, col_black, col_black, 4);
+        draw_list->AddRectFilledMultiColorRounded(picker_pos, picker_pos + ImVec2(sv_picker_size, sv_picker_size), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_white, hue_color32, hue_color32, col_white, 4);
+        draw_list->AddRectFilledMultiColorRounded(picker_pos, picker_pos + ImVec2(sv_picker_size, sv_picker_size), ImGui::GetColorU32( ImGuiCol_FrameBg ), 0, 0, col_black, col_black, 4);
         RenderFrameBorder(picker_pos, picker_pos + ImVec2(sv_picker_size, sv_picker_size), 4);
         sv_cursor_pos.x = ImClamp(IM_ROUND(picker_pos.x + ImSaturate(S)     * sv_picker_size), picker_pos.x + 2, picker_pos.x + sv_picker_size - 2); // Sneakily prevent the circle to stick out too much
         sv_cursor_pos.y = ImClamp(IM_ROUND(picker_pos.y + ImSaturate(1 - V) * sv_picker_size), picker_pos.y + 2, picker_pos.y + sv_picker_size - 2);
 
         // Render Hue Bar
-        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 0 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (0 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), gui.frame_inactive.to_im_color( ), col_hues[0], col_hues[0 + 1], col_hues[0 + 1], col_hues[0], 4, ImDrawFlags_RoundCornersLeft);
-
+        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 0 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (0 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[0], col_hues[0 + 1], col_hues[0 + 1], col_hues[0], 4, ImDrawFlags_RoundCornersLeft);
         for (int i = 1; i < 5; ++i)
             draw_list->AddRectFilledMultiColor(ImVec2(bar0_pos_x + i * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (i + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), col_hues[i], col_hues[i + 1], col_hues[i + 1], col_hues[i]);
 
         draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), gui.frame_inactive.to_im_color( ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
-        float bar0_line_x = IM_ROUND(picker_pos.x + H * sv_picker_size);
+        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
         gui.render_circle_for_horizontal_bar( ImVec2( bar0_line_x + 1, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), hue_color32, style.Alpha );
     }
 
