@@ -24,21 +24,52 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential clang lld llvm make git curl xz-utils unzip \
-            python3 perl rsync zip tar fakeroot dpkg ca-certificates
+            python3 perl rsync zip tar fakeroot dpkg ca-certificates jq
 
-      - name: Setup Theos and iOS SDK
+      - name: Setup Theos, Toolchain and iOS SDK
         run: |
           sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
-          sudo mkdir -p "$THEOS/sdks"
+
+          # Linux iOS Toolchain yükləmə
+          mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone"
+          TC_URL=$(curl -s https://api.github.com/repos/theos/toolchain/releases/latest \
+            | jq -r '.assets[].browser_download_url' \
+            | grep -iE 'linux.*(x86_64|amd64).*(tar\.(xz|gz|bz2|zst)|zip)' \
+            | head -n 1)
+
+          echo "Downloading toolchain: $TC_URL"
+          curl -L "$TC_URL" -o /tmp/toolchain/tc.archive
+
+          if [[ "$TC_URL" == *.tar.xz ]]; then
+            tar -xf /tmp/toolchain/tc.archive -C /tmp/toolchain
+          elif [[ "$TC_URL" == *.tar.gz || "$TC_URL" == *.tgz ]]; then
+            tar -xzf /tmp/toolchain/tc.archive -C /tmp/toolchain
+          elif [[ "$TC_URL" == *.tar.bz2 ]]; then
+            tar -xjf /tmp/toolchain/tc.archive -C /tmp/toolchain
+          elif [[ "$TC_URL" == *.zip ]]; then
+            unzip -q /tmp/toolchain/tc.archive -d /tmp/toolchain
+          fi
+
+          rm -f /tmp/toolchain/tc.archive
+          INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 2 -type d -name "bin" -exec dirname {} \; | head -n 1)
+          if [ -n "$INNER_DIR" ]; then
+            cp -a "$INNER_DIR"/. "$THEOS/toolchain/linux/iphone/"
+          else
+            cp -a /tmp/toolchain/. "$THEOS/toolchain/linux/iphone/"
+          fi
+          rm -rf /tmp/toolchain
+
+          # iOS SDK quraşdırma
+          mkdir -p "$THEOS/sdks"
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/theos-sdks
           SDK_DIR=$(find /tmp/theos-sdks -maxdepth 2 -name "iPhoneOS*.sdk" | sort -V | tail -n 1)
           if [ -n "$SDK_DIR" ]; then
-            sudo cp -r "$SDK_DIR" "$THEOS/sdks/"
-          else
-            sudo cp -r /tmp/theos-sdks/*.sdk "$THEOS/sdks/" 2>/dev/null || true
+            cp -r "$SDK_DIR" "$THEOS/sdks/"
           fi
           rm -rf /tmp/theos-sdks
+
           sudo chown -R "$USER:$USER" "$THEOS"
+          ls -la "$THEOS/toolchain/linux/iphone/bin"
           ls -la "$THEOS/sdks"
 
       - name: Build tweak with existing Makefile
