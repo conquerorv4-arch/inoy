@@ -10,10 +10,9 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = M7MD
 
 M7MD_FRAMEWORKS = IOKit UIKit Foundation Security QuartzCore CoreGraphics CoreText AVFoundation Accelerate GLKit SystemConfiguration GameController JRMemory
-M7MD_CFLAGS += -I/opt/theos/include -I. -w -fobjc-arc -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-value
-M7MD_LDFLAGS += -F. -framework JRMemory
-
-M7MD_CCFLAGS = -w -std=gnu++14 -fno-rtti -fno-exceptions -DNDEBUG -Wno-module-import-in-extern-c -I.
+M7MD_CFLAGS = -I/opt/theos/include -I. -F. -w -fobjc-arc -Wno-deprecated-declarations -Wno-unused-variable -Wno-unused-value
+M7MD_CCFLAGS = -w -std=gnu++14 -fno-rtti -fno-exceptions -DNDEBUG -Wno-module-import-in-extern-c -I. -F.
+M7MD_LDFLAGS = -F. -framework JRMemory
 
 M7MD_FILES = \
 	$(wildcard *.mm) \
