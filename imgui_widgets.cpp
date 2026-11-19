@@ -38,9 +38,9 @@ Index of this file:
 
 // #include <windows.h>
 
-#include "examples/example_win32_directx11/gui.hpp"
-#include "examples/example_win32_directx11/blur.hpp"
-#include "examples/example_win32_directx11/hashes.hpp"
+// #include "examples/example_win32_directx11/gui.hpp"
+// #include "examples/example_win32_directx11/blur.hpp"
+// #include "examples/example_win32_directx11/hashes.hpp"
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
