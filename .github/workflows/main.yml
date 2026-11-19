@@ -50,6 +50,24 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p "$THEOS/toolchain/linux/iphone/bin"
+
+          # clang ve clang++ qurulumu
+          CLANG_BIN=$(find /usr/bin -name 'clang-[0-9]*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
+          [ -z "$CLANG_BIN" ] && CLANG_BIN=$(command -v clang || true)
+          CLANGXX_BIN=$(find /usr/bin -name 'clang++-[0-9]*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
+          [ -z "$CLANGXX_BIN" ] && CLANGXX_BIN=$(command -v clang++ || true)
+
+          if [ -z "$CLANG_BIN" ] || [ -z "$CLANGXX_BIN" ]; then
+            echo "XETA: clang ve ya clang++ tapilmadi."
+            exit 1
+          fi
+
+          sudo ln -sf "$CLANG_BIN" "$THEOS/toolchain/linux/iphone/bin/clang"
+          sudo ln -sf "$CLANGXX_BIN" "$THEOS/toolchain/linux/iphone/bin/clang++"
+          sudo ln -sf "$CLANG_BIN" /usr/local/bin/clang
+          sudo ln -sf "$CLANGXX_BIN" /usr/local/bin/clang++
+
+          # linker (ld) qurulumu
           LD64_BIN=$(find /usr/bin /usr/lib -name 'ld64.lld*' -type f -executable 2>/dev/null | sort -V | tail -n 1 || true)
           LLD_BIN=$(find /usr/bin /usr/lib -name 'lld*' -type f -executable 2>/dev/null | grep -v 'ld64' | sort -V | tail -n 1 || true)
 
