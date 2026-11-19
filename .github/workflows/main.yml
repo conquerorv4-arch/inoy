@@ -2,7 +2,8 @@ name: Build M7MD Tweak
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     env:
       THEOS: /opt/theos
       GIT_TERMINAL_PROMPT: "0"
@@ -47,7 +47,7 @@ jobs:
               | head -n 1 || true)
 
             if [ -n "$TC_URL" ]; then
-              echo "Toolchain tapıldı ($repo): $TC_URL"
+              echo "Toolchain tapildi ($repo): $TC_URL"
               break
             fi
           done
@@ -57,12 +57,12 @@ jobs:
           fi
 
           if [ ! -s /tmp/toolchain/tc.archive ]; then
-            echo "Release asset birbaşa tapılmadı, theos install skriptini yoxlayırıq..."
+            echo "Release asset tapilmadi, install skripti yoxlanilir..."
             curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos -o /tmp/install-theos.sh || true
             grep -Eo 'https://[^"[:space:]]+(toolchain|iphone|linux)[^"[:space:]]*\.(tar\.(xz|gz|bz2|zst)|tgz|zip)' /tmp/install-theos.sh | head -n 1 > /tmp/tc_url.txt || true
             TC_URL=$(cat /tmp/tc_url.txt || true)
             if [ -n "$TC_URL" ]; then
-              echo "Skriptdən tapılan toolchain URL: $TC_URL"
+              echo "Skriptden tapilan URL: $TC_URL"
               curl -fSL "$TC_URL" -o /tmp/toolchain/tc.archive || true
             fi
           fi
@@ -88,7 +88,7 @@ jobs:
               cp -a /tmp/toolchain/. "$THEOS/toolchain/linux/iphone/"
             fi
           else
-            echo "XƏTA: Linux iOS toolchain arxivi yüklənmədi."
+            echo "XETA: Linux iOS toolchain arxivi yuklenmedi."
             exit 1
           fi
           rm -rf /tmp/toolchain /tmp/install-theos.sh /tmp/tc_url.txt
@@ -112,60 +112,67 @@ jobs:
           LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            BASE_CMD="\"$LD64_BIN\""
+            TARGET_LD="$LD64_BIN"
           elif [ -n "$LLD_BIN" ]; then
-            BASE_CMD="\"$LLD_BIN\" -flavor darwin"
+            TARGET_LD="$LLD_BIN"
           else
-            echo "XƏTA: ld64.lld və ya lld tapılmadı."
+            echo "XETA: ld64.lld ve ya lld tapilmadi."
             exit 1
           fi
 
-          cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
-#!/usr/bin/env bash
-ARGS=()
-HAS_PLATFORM=0
-MIN_VER="14.0"
-SDK_VER="16.5"
+          cat <<'WRAPPER' > /tmp/ld_wrapper.py
+          #!/usr/bin/env python3
+          import os, sys
 
-while [ \$# -gt 0 ]; do
-  case "\$1" in
-    -platform_version)
-      HAS_PLATFORM=1
-      ARGS+=("\$1")
-      ;;
-    -iphoneos_version_min)
-      shift
-      if [ \$# -gt 0 ]; then
-        MIN_VER="\$1"
-      fi
-      ;;
-    -sdk_version)
-      shift
-      if [ \$# -gt 0 ]; then
-        SDK_VER="\$1"
-      fi
-      ;;
-    *)
-      ARGS+=("\$1")
-      ;;
-  esac
-  shift
-done
+          target = os.environ["TARGET_LD"]
+          args = sys.argv[1:]
+          out = []
+          has_plat = False
+          min_ver = "14.0"
+          sdk_ver = "16.5"
 
-if [ "\$HAS_PLATFORM" -eq 0 ]; then
-  ARGS+=(-platform_version ios "\$MIN_VER" "\$SDK_VER")
-fi
+          i = 0
+          while i < len(args):
+              a = args[i]
+              if a == "-platform_version":
+                  has_plat = True
+                  out.append(a)
+              elif a == "-iphoneos_version_min":
+                  if i + 1 < len(args):
+                      min_ver = args[i + 1]
+                      i += 1
+              elif a == "-sdk_version":
+                  if i + 1 < len(args):
+                      sdk_ver = args[i + 1]
+                      i += 1
+              else:
+                  out.append(a)
+              i += 1
 
-exec $BASE_CMD "\${ARGS[@]}"
-EOF
+          if not has_plat:
+              out.extend(["-platform_version", "ios", min_ver, sdk_ver])
 
+          if os.path.basename(target).startswith("lld") and "-flavor" not in out:
+              cmd = [target, "-flavor", "darwin"] + out
+          else:
+              cmd = [target] + out
+
+          os.execvp(cmd[0], cmd)
+          WRAPPER
+
+          sed -i 's/^          //' /tmp/ld_wrapper.py
+          chmod +x /tmp/ld_wrapper.py
+          sudo cp /tmp/ld_wrapper.py "$THEOS/toolchain/linux/iphone/bin/ld"
           sudo chmod +x "$THEOS/toolchain/linux/iphone/bin/ld"
-          "$THEOS/toolchain/linux/iphone/bin/ld" --version || true
+          TARGET_LD="$TARGET_LD" "$THEOS/toolchain/linux/iphone/bin/ld" --version || true
 
       - name: Build tweak with existing Makefile
         run: |
           export THEOS=/opt/theos
           export PATH="$THEOS/toolchain/linux/iphone/bin:$PATH"
+          LD64_BIN=$(command -v ld64.lld || find /usr/bin -name "ld64.lld*" | head -n 1 || true)
+          LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
+          export TARGET_LD="${LD64_BIN:-$LLD_BIN}"
           make clean
           make package FINALPACKAGE=1 || make
 
