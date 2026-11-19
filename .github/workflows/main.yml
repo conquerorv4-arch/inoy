@@ -112,13 +112,52 @@ jobs:
           LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$LD64_BIN" | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
+            BASE_CMD="\"$LD64_BIN\""
           elif [ -n "$LLD_BIN" ]; then
-            printf '#!/usr/bin/env bash\nexec "%s" -flavor darwin "$@"\n' "$LLD_BIN" | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
+            BASE_CMD="\"$LLD_BIN\" -flavor darwin"
           else
             echo "XƏTA: ld64.lld və ya lld tapılmadı."
             exit 1
           fi
+
+          cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
+#!/usr/bin/env bash
+ARGS=()
+HAS_PLATFORM=0
+MIN_VER="14.0"
+SDK_VER="16.5"
+
+while [ \$# -gt 0 ]; do
+  case "\$1" in
+    -platform_version)
+      HAS_PLATFORM=1
+      ARGS+=("\$1")
+      ;;
+    -iphoneos_version_min)
+      shift
+      if [ \$# -gt 0 ]; then
+        MIN_VER="\$1"
+      fi
+      ;;
+    -sdk_version)
+      shift
+      if [ \$# -gt 0 ]; then
+        SDK_VER="\$1"
+      fi
+      ;;
+    *)
+      ARGS+=("\$1")
+      ;;
+  esac
+  shift
+done
+
+if [ "\$HAS_PLATFORM" -eq 0 ]; then
+  ARGS+=(-platform_version ios "\$MIN_VER" "\$SDK_VER")
+fi
+
+exec $BASE_CMD "\${ARGS[@]}"
+EOF
 
           sudo chmod +x "$THEOS/toolchain/linux/iphone/bin/ld"
           "$THEOS/toolchain/linux/iphone/bin/ld" --version || true
