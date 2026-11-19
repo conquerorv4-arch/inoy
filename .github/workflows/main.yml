@@ -1,0 +1,51 @@
+name: Build M7MD Tweak
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      THEOS: /opt/theos
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential clang lld llvm make git curl xz-utils unzip \
+            python3 perl rsync zip tar fakeroot dpkg
+
+      - name: Setup Theos
+        run: |
+          sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
+          sudo chown -R "$USER:$USER" "$THEOS"
+
+      - name: Build tweak with existing Makefile
+        run: |
+          export THEOS=/opt/theos
+          make clean
+          make package FINALPACKAGE=1 || make
+
+      - name: Collect .deb and .dylib into compiled_output
+        run: |
+          mkdir -p compiled_output
+          find . -maxdepth 4 -type f \( -name "*.deb" -o -name "*.dylib" \) ! -path "./compiled_output/*" -exec cp -v {} compiled_output/ \;
+          ls -lh compiled_output/
+
+      - name: Upload compiled artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: M7MD-compiled-output
+          path: compiled_output/
+          if-no-files-found: warn
