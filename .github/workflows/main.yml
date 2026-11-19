@@ -112,59 +112,61 @@ jobs:
           LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            TARGET_LD="$LD64_BIN"
+            export TARGET_LD="$LD64_BIN"
           elif [ -n "$LLD_BIN" ]; then
-            TARGET_LD="$LLD_BIN"
+            export TARGET_LD="$LLD_BIN"
           else
             echo "XETA: ld64.lld ve ya lld tapilmadi."
             exit 1
           fi
 
-          cat <<'WRAPPER' > /tmp/ld_wrapper.py
-          #!/usr/bin/env python3
-          import os, sys
+          python3 -c '
+          import os, stat, textwrap
+          code = textwrap.dedent("""\
+              #!/usr/bin/env python3
+              import os, sys
 
-          target = os.environ["TARGET_LD"]
-          args = sys.argv[1:]
-          out = []
-          has_plat = False
-          min_ver = "14.0"
-          sdk_ver = "16.5"
+              target = os.environ["TARGET_LD"]
+              args = sys.argv[1:]
+              out = []
+              has_plat = False
+              min_ver = "14.0"
+              sdk_ver = "16.5"
 
-          i = 0
-          while i < len(args):
-              a = args[i]
-              if a == "-platform_version":
-                  has_plat = True
-                  out.append(a)
-              elif a == "-iphoneos_version_min":
-                  if i + 1 < len(args):
-                      min_ver = args[i + 1]
-                      i += 1
-              elif a == "-sdk_version":
-                  if i + 1 < len(args):
-                      sdk_ver = args[i + 1]
-                      i += 1
+              i = 0
+              while i < len(args):
+                  a = args[i]
+                  if a == "-platform_version":
+                      has_plat = True
+                      out.append(a)
+                  elif a == "-iphoneos_version_min":
+                      if i + 1 < len(args):
+                          min_ver = args[i + 1]
+                          i += 1
+                  elif a == "-sdk_version":
+                      if i + 1 < len(args):
+                          sdk_ver = args[i + 1]
+                          i += 1
+                  else:
+                      out.append(a)
+                  i += 1
+
+              if not has_plat:
+                  out.extend(["-platform_version", "ios", min_ver, sdk_ver])
+
+              if os.path.basename(target).startswith("lld") and "-flavor" not in out:
+                  cmd = [target, "-flavor", "darwin"] + out
               else:
-                  out.append(a)
-              i += 1
+                  cmd = [target] + out
 
-          if not has_plat:
-              out.extend(["-platform_version", "ios", min_ver, sdk_ver])
-
-          if os.path.basename(target).startswith("lld") and "-flavor" not in out:
-              cmd = [target, "-flavor", "darwin"] + out
-          else:
-              cmd = [target] + out
-
-          os.execvp(cmd[0], cmd)
-          WRAPPER
-
-          sed -i 's/^          //' /tmp/ld_wrapper.py
-          chmod +x /tmp/ld_wrapper.py
-          sudo cp /tmp/ld_wrapper.py "$THEOS/toolchain/linux/iphone/bin/ld"
-          sudo chmod +x "$THEOS/toolchain/linux/iphone/bin/ld"
-          TARGET_LD="$TARGET_LD" "$THEOS/toolchain/linux/iphone/bin/ld" --version || true
+              os.execvp(cmd[0], cmd)
+          """)
+          ld_path = "/opt/theos/toolchain/linux/iphone/bin/ld"
+          with open(ld_path, "w", encoding="utf-8") as f:
+              f.write(code)
+          os.chmod(ld_path, os.stat(ld_path).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+          '
+          TARGET_LD="$TARGET_LD" /opt/theos/toolchain/linux/iphone/bin/ld --version || true
 
       - name: Build tweak with existing Makefile
         run: |
