@@ -14848,38 +14848,41 @@ robotoTinyFont->LegacyFontSize = 10;//5
 
 #define hook GaYSSS9aAL
 
-
-
 + (void)load
 {
-        FName::GNames = GetGNames();
-    while (!FName::GNames) {
-        FName::GNames = GetGNames();
-          sleep(1);
-    }
-    
-    
-    UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
-    
-    while (!UObject::GUObjectArray) {
-    UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
-          sleep(1);
-    }
-
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5* NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-
-    
-        //start load but not means language
-          [self load1];
+    // Oyunun və anti-cheatin ilk yüklənməsini keçmək üçün əvvəlcə heç nə etmirik.
+    // Bütün yaddaş əməliyyatlarını arxa plana atırıq.
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         
+        // 1. GNames-in yüklənməsini gözləyirik
+        FName::GNames = GetGNames();
+        while (!FName::GNames) {
+            FName::GNames = GetGNames();
+            sleep(1);
+        }
+        
+        // 2. UObjectArray-in yüklənməsini gözləyirik
+        UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
+        while (!UObject::GUObjectArray) {
+            UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
+            sleep(1);
+        }
+        
+        // 3. Oyun tam yükləndikdən sonra load1-i çağırırıq
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            //start load but not means language
+            [self load1];
+        });
     });
 }
+
 + (void)load1
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        RTL_language();
-    });
+    // Burada əlavə 5 saniyə gözləmək lazım deyil, çünki yuxarıda artıq gözlədik.
+    // Birbaşa RTL_language() çağırırıq.
+    RTL_language();
 }
+
 __attribute__((constructor)) void _init() {
     pthread_t t;
     
@@ -14888,4 +14891,3 @@ __attribute__((constructor)) void _init() {
 }
 
 @end
-
