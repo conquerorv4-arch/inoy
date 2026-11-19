@@ -2918,14 +2918,13 @@ bool ImGui::SliderScalar( const char* label, ImGuiDataType data_type, void* p_da
     char value_buf[64];
     const char* value_buf_end = value_buf + DataTypeFormatString( value_buf, IM_ARRAYSIZE( value_buf ), data_type, p_data, format );
 
-    draw->AddText( ImVec2( total_bb.Min.x, frame_bb.GetCenter( ).y - label_size.y / 2 ), gui.text_disabled.to_im_color( ), label );
+    draw->AddText( ImVec2( total_bb.Min.x, frame_bb.GetCenter( ).y - label_size.y / 2 ), ImGui::GetColorU32( ImGuiCol_TextDisabled ), label );
 
-    draw->AddRectFilled( frame_bb.Min, frame_bb.Max, gui.frame_active.to_im_color( ), 5 );
-    draw->AddRectFilled( frame_bb.Min, ImVec2( frame_bb.Min.x + value->second, frame_bb.Max.y ), gui.accent_color.to_im_color( ), 5 );
-    draw->AddCircleFilled( ImVec2( frame_bb.Min.x + value->second - 2, frame_bb.GetCenter( ).y ), 6, gui.accent_color.to_im_color( ), 30 );
-
+    draw->AddRectFilled( frame_bb.Min, frame_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBgActive ), 5 );
+    draw->AddRectFilled( frame_bb.Min, ImVec2( frame_bb.Min.x + value->second, frame_bb.Max.y ), ImGui::GetColorU32( ImGuiCol_SliderGrabActive ), 5 );
+    draw->AddCircleFilled( ImVec2( frame_bb.Min.x + value->second - 2, frame_bb.GetCenter( ).y ), 6, ImGui::GetColorU32( ImGuiCol_SliderGrabActive ), 30 );
     draw->AddRectFilled( number_bb.Min, number_bb.Max, gui.frame_inactive.to_im_color( ), 4 );
-    draw->AddRect( number_bb.Min, number_bb.Max, gui.border.to_im_color( ), 4 );
+    draw->AddRectFilled( number_bb.Min, number_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), 4 );
 
     if ( IsMouseHoveringRect( number_bb.Min, number_bb.Max ) && CalcTextSize( value_buf, value_buf_end ).x > number_bb.GetWidth( ) )
         GetForegroundDrawList( )->AddText( ImVec2( number_bb.GetCenter( ).x - CalcTextSize( value_buf, value_buf_end ).x / 2, number_bb.Min.y + 1 ), gui.text.to_im_color( ), value_buf, value_buf_end );
