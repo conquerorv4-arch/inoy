@@ -166,7 +166,7 @@ namespace IMGUI_STB_NAMESPACE
 using namespace IMGUI_STB_NAMESPACE;
 #endif
 
-#include "examples/example_win32_directx11/gui.hpp"
+// #include "examples/example_win32_directx11/gui.hpp"
 
 //-----------------------------------------------------------------------------
 // [SECTION] Style functions
