@@ -59,7 +59,7 @@ jobs:
           if [ ! -s /tmp/toolchain/tc.archive ]; then
             echo "Release asset birbaşa tapılmadı, theos install skriptini yoxlayırıq..."
             curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos -o /tmp/install-theos.sh || true
-            grep -Eo 'https://[^"'\''[:space:]]+(toolchain|iphone|linux)[^"'\''[:space:]]*\.(tar\.(xz|gz|bz2|zst)|tgz|zip)' /tmp/install-theos.sh | head -n 1 > /tmp/tc_url.txt || true
+            grep -Eo 'https://[^"[:space:]]+(toolchain|iphone|linux)[^"[:space:]]*\.(tar\.(xz|gz|bz2|zst)|tgz|zip)' /tmp/install-theos.sh | head -n 1 > /tmp/tc_url.txt || true
             TC_URL=$(cat /tmp/tc_url.txt || true)
             if [ -n "$TC_URL" ]; then
               echo "Skriptdən tapılan toolchain URL: $TC_URL"
@@ -93,7 +93,6 @@ jobs:
           fi
           rm -rf /tmp/toolchain /tmp/install-theos.sh /tmp/tc_url.txt
 
-          # iOS SDK quraşdırma
           mkdir -p "$THEOS/sdks"
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/theos-sdks
           SDK_DIR=$(find /tmp/theos-sdks -maxdepth 2 -name "iPhoneOS*.sdk" | sort -V | tail -n 1 || true)
@@ -113,15 +112,9 @@ jobs:
           LLD_BIN=$(command -v lld || find /usr/bin -name "lld*" | head -n 1 || true)
 
           if [ -n "$LD64_BIN" ]; then
-            cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
-#!/usr/bin/env bash
-exec "$LD64_BIN" "\$@"
-EOF
+            printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$LD64_BIN" | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
           elif [ -n "$LLD_BIN" ]; then
-            cat <<EOF | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
-#!/usr/bin/env bash
-exec "$LLD_BIN" -flavor darwin "\$@"
-EOF
+            printf '#!/usr/bin/env bash\nexec "%s" -flavor darwin "$@"\n' "$LLD_BIN" | sudo tee "$THEOS/toolchain/linux/iphone/bin/ld" >/dev/null
           else
             echo "XƏTA: ld64.lld və ya lld tapılmadı."
             exit 1
