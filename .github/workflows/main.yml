@@ -14,6 +14,7 @@ jobs:
 
     env:
       THEOS: /opt/theos
+      GIT_TERMINAL_PROMPT: "0"
 
     steps:
       - name: Checkout repository
@@ -23,7 +24,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            build-essential clang lld llvm make git curl xz-utils unzip zstd \
+            build-essential clang lld llvm make git curl xz-utils unzip zstd file \
             python3 perl rsync zip tar fakeroot dpkg ca-certificates jq
 
       - name: Setup Theos, Toolchain and iOS SDK
@@ -32,28 +33,38 @@ jobs:
         run: |
           sudo git clone --recursive https://github.com/theos/theos.git "$THEOS"
 
-          # Linux iOS Toolchain yükləmə (rate limit-ə qarşı ehtiyat yoxlamalı)
           mkdir -p /tmp/toolchain "$THEOS/toolchain/linux/iphone"
-          RELEASES_JSON=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/theos/toolchain/releases || true)
+          TC_URL=""
 
-          TC_URL=$(echo "$RELEASES_JSON" \
-            | jq -r '.. | .browser_download_url? // empty' \
-            | grep -iE 'linux.*(x86_64|amd64).*(tar\.(xz|gz|bz2|zst)|zip)' \
-            | head -n 1 || true)
+          for repo in "theos/toolchain" "ProcursusTeam/toolchain"; do
+            ASSETS_JSON=$(curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${repo}/releases?per_page=20" || true)
 
-          if [ -z "$TC_URL" ]; then
-            echo "API asset tapılmadı, theos/toolchain repozitoriyasını yoxlayırıq..."
-            git clone --depth 1 https://github.com/theos/toolchain.git /tmp/tc-repo || true
-            TC_ARCHIVE=$(find /tmp/tc-repo -type f \( -name "*linux*x86_64*.tar.*" -o -name "*linux*amd64*.tar.*" -o -name "*linux*.zip" \) | head -n 1 || true)
-            if [ -n "$TC_ARCHIVE" ]; then
-              cp "$TC_ARCHIVE" /tmp/toolchain/tc.archive
-              TC_URL="local://$TC_ARCHIVE"
+            TC_URL=$(echo "$ASSETS_JSON" \
+              | jq -r '.. | .browser_download_url? // empty' \
+              | grep -iE 'linux.*(x86_64|amd64).*(tar\.(xz|gz|bz2|zst)|tgz|zip)' \
+              | head -n 1 || true)
+
+            if [ -n "$TC_URL" ]; then
+              echo "Toolchain tapıldı ($repo): $TC_URL"
+              break
             fi
-          else
-            echo "Downloading toolchain: $TC_URL"
-            curl -sSL -H "Authorization: Bearer ${GH_TOKEN}" "$TC_URL" -o /tmp/toolchain/tc.archive
+          done
+
+          if [ -n "$TC_URL" ]; then
+            curl -fSL -H "Authorization: Bearer ${GH_TOKEN}" "$TC_URL" -o /tmp/toolchain/tc.archive || true
+          fi
+
+          if [ ! -s /tmp/toolchain/tc.archive ]; then
+            echo "Release asset birbaşa tapılmadı, theos install skriptini yoxlayırıq..."
+            curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos -o /tmp/install-theos.sh || true
+            grep -Eo 'https://[^"'\''[:space:]]+(toolchain|iphone|linux)[^"'\''[:space:]]*\.(tar\.(xz|gz|bz2|zst)|tgz|zip)' /tmp/install-theos.sh | head -n 1 > /tmp/tc_url.txt || true
+            TC_URL=$(cat /tmp/tc_url.txt || true)
+            if [ -n "$TC_URL" ]; then
+              echo "Skriptdən tapılan toolchain URL: $TC_URL"
+              curl -fSL "$TC_URL" -o /tmp/toolchain/tc.archive || true
+            fi
           fi
 
           if [ -s /tmp/toolchain/tc.archive ]; then
@@ -70,7 +81,7 @@ jobs:
               unzip -q /tmp/toolchain/tc.archive -d /tmp/toolchain
             fi
             rm -f /tmp/toolchain/tc.archive
-            INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 2 -type d -name "bin" -exec dirname {} \; | head -n 1 || true)
+            INNER_DIR=$(find /tmp/toolchain -mindepth 1 -maxdepth 3 -type d -name "bin" -exec dirname {} \; | head -n 1 || true)
             if [ -n "$INNER_DIR" ]; then
               cp -a "$INNER_DIR"/. "$THEOS/toolchain/linux/iphone/"
             else
@@ -80,20 +91,20 @@ jobs:
             echo "XƏTA: Linux iOS toolchain arxivi yüklənmədi."
             exit 1
           fi
-          rm -rf /tmp/toolchain /tmp/tc-repo
+          rm -rf /tmp/toolchain /tmp/install-theos.sh /tmp/tc_url.txt
 
           # iOS SDK quraşdırma
           mkdir -p "$THEOS/sdks"
           git clone --depth 1 https://github.com/theos/sdks.git /tmp/theos-sdks
-          SDK_DIR=$(find /tmp/theos-sdks -maxdepth 2 -name "iPhoneOS*.sdk" | sort -V | tail -n 1)
+          SDK_DIR=$(find /tmp/theos-sdks -maxdepth 2 -name "iPhoneOS*.sdk" | sort -V | tail -n 1 || true)
           if [ -n "$SDK_DIR" ]; then
             cp -r "$SDK_DIR" "$THEOS/sdks/"
           fi
           rm -rf /tmp/theos-sdks
 
           sudo chown -R "$USER:$USER" "$THEOS"
-          ls -la "$THEOS/toolchain/linux/iphone/bin"
-          ls -la "$THEOS/sdks"
+          ls -la "$THEOS/toolchain/linux/iphone/bin" || true
+          ls -la "$THEOS/sdks" || true
 
       - name: Build tweak with existing Makefile
         run: |
