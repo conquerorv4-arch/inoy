@@ -29,13 +29,7 @@ M7MD_FILES = \
 	$(wildcard imgui/*.cpp) \
 	$(wildcard ESP/*.mm) \
 	$(wildcard ESP/*.cpp) \
-	SDK/SHANKS_PUBGM_Basic.cpp \
-	SDK/SHANKS_PUBGM_Basic_functions.cpp \
-	SDK/SHANKS_PUBGM_CoreUObject_functions.cpp \
-	SDK/SHANKS_PUBGM_Engine_functions.cpp \
-	SDK/SHANKS_PUBGM_ShadowTrackerExtra_functions.cpp \
-	SDK/SHANKS_PUBGM_Client_functions.cpp \
-	SDK/SHANKS_PUBGM_Gameplay_functions.cpp \
+	$(wildcard SDK/*.cpp) \
 	$(wildcard NSURL+hook/*.m) \
 	$(wildcard MBProgressHUD/*.m) \
 	$(wildcard FCFileManager/*.m) \
