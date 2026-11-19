@@ -1,3 +1,6 @@
+#include <unordered_map>
+
+
 // dear imgui, v1.89.7 WIP
 // (widgets code)
 
