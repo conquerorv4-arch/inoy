@@ -10919,9 +10919,11 @@ FVector BelowRoot = Root;
 
 
 
-    static UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
     if (GRWAR)
     {
+        // Dəyişəni bura köçürdük ki, oyun tam açılmadan işə düşməsin
+        UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
+        
         std::vector < ASTExtraGrenadeBase * >GrenadeBase;
         GetAllActors(GrenadeBase);
         for (auto actor = GrenadeBase.begin();
@@ -10931,7 +10933,7 @@ FVector BelowRoot = Root;
             if(Grenade) {
                 if(Grenade->ItemDefineID.TypeSpecificID ==602002)
                     continue;
-                if(Grenade->ItemDefineID.TypeSpecificID == 602004);
+                if(Grenade->ItemDefineID.TypeSpecificID == 602004); // Qeyd: burada nöqtəli vergül (;) var, bəlkə də bu şərt olmalıdır?
                 auto RootComponent = Grenade->RootComponent;
                 if (RootComponent) {
                     float gDistance =
@@ -10969,7 +10971,8 @@ FVector BelowRoot = Root;
                                              COLOR_RED, COLOR_BLACK, true);
                             tslFont->LegacyFontSize =
                             TSL_FONT_DEFAULT_SIZE;
-                        }//
+                        }
+                        
                         {
                             FVector bbOrigin =
                             RootComponent->RelativeLocation;
