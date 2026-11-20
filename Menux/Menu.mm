@@ -291,6 +291,26 @@ int Cross = 100;
 int AimF = 0;
 int AimL = 0;
 
+bool VisCheckBT = false;
+bool VisCheck = false;
+bool IgnoreBot = false;
+bool IgnoreKnocked = false;
+bool AutoStandd = false;
+bool FAKEDAMAGEV3 = false;
+bool FAKEDAMAGEV2 = false;
+bool FAKEDAMAGE = false;
+bool AutoFire = false;
+bool Enablev2 = false;
+bool Enable = false;
+bool AimBot = false;
+bool DeadBox = false;
+bool KillMessage = false;
+bool ModSkinn = false;
+float SlowMotionFactor2 = 1.0f;
+bool SlowMotion2 = false;
+float SlowMotionFactor = 1.0f;
+
+
 static uint8_t _md_key = 0xA5;
 
 static inline void RainbowV1(bool v) {
