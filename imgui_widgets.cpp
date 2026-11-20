@@ -5574,7 +5574,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
 
                 draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
         draw_list->AddCircleFilled( ImVec2( bar0_pos_x + 2, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), 4.f, hue_color32, 20 );
-        gui.render_circle_for_horizontal_bar( ImVec2( bar0_line_x + 1, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), hue_color32, style.Alpha );
+        draw_list->AddCircleFilled( ImVec2( bar0_pos_x + 2, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), 4.f, hue_color32, 20 );
     }
 
     // Render cursor/preview circle (clamp S/V within 0..1 range because floating points colors may lead HSV values to be out of range)
@@ -5590,7 +5590,7 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
         draw_list->AddCircleFilled( ImVec2( bar1_bb.Min.x + 2, bar1_bb.GetCenter( ).y ), 4.f, ImColor( col[0], col[1], col[2] ), 20 );
         draw_list->AddRectFilledMultiColorRounded(bar1_bb.Min, bar1_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), ImColor( col[0], col[1], col[2], style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], style.Alpha ), 3 );
         float bar1_line_x = IM_ROUND(picker_pos.x + (1.0f - alpha) * sv_picker_size);
-        gui.render_circle_for_horizontal_bar( ImVec2( bar1_line_x + 1, bar1_bb.GetCenter( ).y ), ImColor( col[0], col[1], col[2] ), style.Alpha );
+        draw_list->AddCircleFilled( ImVec2( bar1_bb.Min.x + 2, bar1_bb.GetCenter( ).y ), 4.f, ImColor( col[0], col[1], col[2] ), 20 );
     }
 
     EndGroup();
