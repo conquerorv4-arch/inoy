@@ -62,7 +62,7 @@ static bool IsValidPtr(uintptr_t addr) {
 #if defined(__LP64__)
     mach_vm_address_t address = static_cast<mach_vm_address_t>(addr);
     mach_vm_size_t vmsize = 0;
-    VM_REGION_BASIC_INFO_COUNT_64
+    mach_msg_type_number_t count = VM_REGION_BASIC_INFO_COUNT_64;
     vm_region_basic_info_data_64_t info;
     mach_port_t object_name = MACH_PORT_NULL;
     kern_return_t kr = mach_vm_region(mach_task_self(), &address, &vmsize,
