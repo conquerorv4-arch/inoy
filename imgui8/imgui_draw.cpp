@@ -30,9 +30,9 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "PUBG/core/imgui/imgui.h"
+#include "imgui.h"
 #ifndef IMGUI_DISABLE
-#include "PUBG/core/imgui/imgui_internal.h"
+#include "imgui_internal.h"
 #ifdef IMGUI_ENABLE_FREETYPE
 #include "PUBG/core/imgui/imgui_freetype.h"
 #endif
