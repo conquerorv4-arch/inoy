@@ -12,9 +12,6 @@ static bool testBool2 = false;
 static float testSlider = 50.0f;
 
 @interface ImGuiDrawView () <MTKViewDelegate>
-@property (nonatomic, strong) id<MTLDevice> device;
-@property (nonatomic, strong) id<MTLCommandQueue> commandQueue;
-@property (nonatomic, strong) MTKView *mtkView;
 @end
 
 @implementation ImGuiDrawView
@@ -22,9 +19,6 @@ static float testSlider = 50.0f;
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _device = MTLCreateSystemDefaultDevice();
-        _commandQueue = [_device newCommandQueue];
-
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
 
@@ -38,7 +32,10 @@ static float testSlider = 50.0f;
         style.FrameRounding = 6.0f;
         style.ScaleAllSizes(1.1f);
 
-        ImGui_ImplMetal_Init(_device);
+        id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+        if (dev) {
+            ImGui_ImplMetal_Init(dev);
+        }
     }
     return self;
 }
@@ -50,12 +47,12 @@ static float testSlider = 50.0f;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.mtkView = (MTKView *)self.view;
-    self.mtkView.device = self.device;
-    self.mtkView.delegate = self;
-    self.mtkView.clearColor = MTLClearColorMake(0, 0, 0, 0);
-    self.mtkView.backgroundColor = [UIColor clearColor];
-    self.mtkView.opaque = NO;
+    MTKView *mtk = (MTKView *)self.view;
+    mtk.device = MTLCreateSystemDefaultDevice();
+    mtk.delegate = self;
+    mtk.clearColor = MTLClearColorMake(0, 0, 0, 0);
+    mtk.backgroundColor = [UIColor clearColor];
+    mtk.opaque = NO;
 }
 
 - (void)updateIOWithTouchEvent:(UIEvent *)event {
@@ -97,13 +94,19 @@ static float testSlider = 50.0f;
         return;
     }
 
+    id<MTLDevice> dev = view.device ? view.device : MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> queue = [dev newCommandQueue];
+    if (!dev || !queue) {
+        return;
+    }
+
     ImGuiIO &io = ImGui::GetIO();
     io.DisplaySize = ImVec2(view.bounds.size.width, view.bounds.size.height);
     CGFloat scale = view.window.screen.nativeScale > 0 ? view.window.screen.nativeScale : 1.0f;
     io.DisplayFramebufferScale = ImVec2(scale, scale);
     io.DeltaTime = 1.0f / 60.0f;
 
-    id<MTLCommandBuffer> commandBuffer = [self.commandQueue commandBuffer];
+    id<MTLCommandBuffer> commandBuffer = [queue commandBuffer];
     MTLRenderPassDescriptor *renderPassDescriptor = view.currentRenderPassDescriptor;
     if (!renderPassDescriptor) {
         [commandBuffer commit];
