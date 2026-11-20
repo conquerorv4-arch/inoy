@@ -746,21 +746,22 @@ void DrawLootTab() {
     
     ImGui::Columns(3, nullptr, false);
     
-    ImGui::Checkbox("Rifle", &步枪);
-    ImGui::Checkbox("Sniper", &狙击);
-    ImGui::Checkbox("SMG", &物资冲锋);
+        // ImGui::Checkbox("Rifle", &步枪);
+    // ImGui::Checkbox("Sniper", &狙击);
+    // ImGui::Checkbox("SMG", &物资冲锋);
     
     ImGui::NextColumn();
     
-    ImGui::Checkbox("Scope", &物资倍镜);
-    ImGui::Checkbox("Armor", &物资防具);
-    ImGui::Checkbox("Accessories", &物资配件);
+    // ImGui::Checkbox("Scope", &物资倍镜);
+    // ImGui::Checkbox("Armor", &物资防具);
+    // ImGui::Checkbox("Accessories", &物资配件);
     
     ImGui::NextColumn();
     
     ImGui::Checkbox("Car Info", &IsCarFuel);
     ImGui::Checkbox("Box Vehicle", &IsboxVechle);
-    ImGui::Checkbox("Airdrop", &地铁物资);
+    // ImGui::Checkbox("Airdrop", &地铁物资);
+
     
     ImGui::Columns(1);
 }
