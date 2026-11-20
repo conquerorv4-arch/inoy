@@ -33,24 +33,13 @@
 
         ImGui::StyleColorsDark();
 
-        BOOL addedCustomFont = NO;
         #if defined(Fontdata) && defined(Fontsize)
         if (Fontdata != nullptr && Fontsize > 0) {
             ImFontConfig config;
             config.FontDataOwnedByAtlas = false;
-            ImFont *loadedFont = io.Fonts->AddFontFromMemoryTTF((void *)Fontdata, (int)Fontsize, 30.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
-            if (loadedFont != nullptr) {
-                _espFont = loadedFont;
-                addedCustomFont = YES;
-            }
+            _espFont = io.Fonts->AddFontFromMemoryTTF((void *)Fontdata, (int)Fontsize, 30.0f, &config, io.Fonts->GetGlyphRangesChineseFull());
         }
         #endif
-
-        if (!addedCustomFont) {
-            ImFontConfig defaultCfg;
-            defaultCfg.SizePixels = 16.0f;
-            _espFont = io.Fonts->AddFontDefault(&defaultCfg);
-        }
 
         static const ImWchar icons_ranges[] = { 0xf000, 0xf3ff, 0 };
         ImFontConfig icons_config;
@@ -66,10 +55,6 @@
 
         if (_iconFont != nullptr) {
             _iconFont->FontSize = 5.0f;
-        }
-
-        if (io.Fonts->Fonts.Size == 0) {
-            io.Fonts->AddFontDefault();
         }
 
         io.DisplaySize.x = self.frame.size.width * UIScreen.mainScreen.nativeScale;
