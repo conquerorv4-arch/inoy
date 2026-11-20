@@ -1,85 +1,117 @@
 #import <UIKit/UIKit.h>
-#include "PUBG/core/MenuLoad/Includes.h"
-#import <AVFoundation/AVFoundation.h>
-#import "API/APIClient.h"
-#include "PUBG/core/ue4/xor.h"
-
-#define TOKEN ENCRYPT("wZ3Q/xYPjTIWo5gRdA5jLfamO6POk7SjBPQALRXHafuNi0nwolEDstMEOrlEsxHyiUUj4M/7hRwYD6VApIf9c3kkgQYy6dWE/B69+eT5F0g=")
+#import "DrawView.h"
 
 extern bool menu_open;
 
-void initAPI(){
-    apiclient_set_token(TOKEN);
-    apiclient_set_language(ENCRYPT("en"));
-    apiclient_paid(^{
-        [[ImGuiLoad share] performSelector:@selector(initMenu)];
-    });
-}
-
-@interface ImGuiLoad()
+@interface ImGuiLoad : NSObject
 @property (nonatomic, strong) ImGuiDrawView *vna;
+@property (nonatomic, strong) UIButton *toggleButton;
++ (instancetype)share;
 - (void)initMenu;
-- (void)initTapGes;
 - (void)toggleMenu;
-- (void)handleTap:(UITapGestureRecognizer *)gesture;
 @end
 
 @implementation ImGuiLoad
 
-+ (void)load { 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{ 
-        initAPI();
-        [[ImGuiLoad share] initTapGes]; 
-    }); 
++ (void)load {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [[ImGuiLoad share] initMenu];
+    });
 }
 
-+ (instancetype)share { 
-    static ImGuiLoad *tool; 
-    static dispatch_once_t onceToken; 
-    dispatch_once(&onceToken, ^{ 
-        tool = [[ImGuiLoad alloc] init]; 
-    }); 
-    return tool; 
++ (instancetype)share {
+    static ImGuiLoad *tool = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        tool = [[ImGuiLoad alloc] init];
+    });
+    return tool;
 }
 
-- (void)show { 
-    [self initMenu]; 
-    _vna.view.hidden = NO; 
-    menu_open = true; 
+- (UIWindow *)findActiveWindow {
+    UIApplication *app = [UIApplication sharedApplication];
+    for (UIScene *scene in app.connectedScenes) {
+        if ([scene isKindOfClass:[UIWindowScene class]] && scene.activationState == UISceneActivationStateForegroundActive) {
+            UIWindowScene *windowScene = (UIWindowScene *)scene;
+            for (UIWindow *win in windowScene.windows) {
+                if (win.isKeyWindow) return win;
+            }
+            if (windowScene.windows.count > 0) {
+                return windowScene.windows.firstObject;
+            }
+        }
+    }
+    return app.windows.firstObject;
 }
 
-- (void)initMenu { 
-    if (!_vna) { 
-        _vna = [[ImGuiDrawView alloc] init]; 
-        _vna.view.frame = [UIScreen mainScreen].bounds; 
-        _vna.view.userInteractionEnabled = YES; 
-        _vna.view.backgroundColor = [UIColor clearColor]; 
-        UIWindowScene *windowScene = (UIWindowScene *)[UIApplication sharedApplication].connectedScenes.allObjects.firstObject; 
-        UIWindow *keyWindow = windowScene.windows.firstObject; 
-        [keyWindow.rootViewController.view addSubview:_vna.view]; 
-        _vna.view.hidden = YES; 
-        menu_open = false; 
-    } 
+- (void)initMenu {
+    UIWindow *keyWindow = [self findActiveWindow];
+    if (!keyWindow) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [self initMenu];
+        });
+        return;
+    }
+
+    if (!_vna) {
+        _vna = [[ImGuiDrawView alloc] init];
+        _vna.view.frame = keyWindow.bounds;
+        _vna.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        _vna.view.backgroundColor = [UIColor clearColor];
+        _vna.view.hidden = YES;
+        menu_open = false;
+        [keyWindow addSubview:_vna.view];
+    }
+
+    if (!_toggleButton) {
+        _toggleButton = [UIButton buttonWithType:UIButtonTypeCustom];
+        _toggleButton.frame = CGRectMake(16, 140, 46, 46);
+        _toggleButton.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.85f];
+        _toggleButton.layer.cornerRadius = 23.0f;
+        _toggleButton.layer.borderWidth = 1.2f;
+        _toggleButton.layer.borderColor = [UIColor whiteColor].CGColor;
+        [_toggleButton setTitle:@"M" forState:UIControlStateNormal];
+        [_toggleButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        _toggleButton.titleLabel.font = [UIFont boldSystemFontOfSize:16.0f];
+
+        [_toggleButton addTarget:self action:@selector(toggleMenu) forControlEvents:UIControlEventTouchUpInside];
+
+        UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+        [_toggleButton addGestureRecognizer:pan];
+
+        [keyWindow addSubview:_toggleButton];
+    }
 }
 
-- (void)toggleMenu { 
-    _vna.view.hidden = !_vna.view.hidden; 
-    menu_open = !_vna.view.hidden; 
+- (void)handlePan:(UIPanGestureRecognizer *)gesture {
+    UIView *btn = gesture.view;
+    UIView *superview = btn.superview;
+    if (!btn || !superview) return;
+
+    CGPoint translation = [gesture translationInView:superview];
+    CGPoint newCenter = CGPointMake(btn.center.x + translation.x, btn.center.y + translation.y);
+
+    CGFloat halfW = btn.bounds.size.width / 2.0f + 8.0f;
+    CGFloat halfH = btn.bounds.size.height / 2.0f + 8.0f;
+    newCenter.x = MIN(MAX(newCenter.x, halfW), superview.bounds.size.width - halfW);
+    newCenter.y = MIN(MAX(newCenter.y, halfH), superview.bounds.size.height - halfH);
+
+    btn.center = newCenter;
+    [gesture setTranslation:CGPointZero inView:superview];
 }
 
-- (void)initTapGes { 
-    UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)]; 
-    tap.numberOfTapsRequired = 2; 
-    tap.numberOfTouchesRequired = 2; 
-    UIWindowScene *windowScene = (UIWindowScene *)[UIApplication sharedApplication].connectedScenes.allObjects.firstObject; 
-    UIWindow *keyWindow = windowScene.windows.firstObject; 
-    [keyWindow.rootViewController.view addGestureRecognizer:tap]; 
-}
+- (void)toggleMenu {
+    if (!_vna) {
+        [self initMenu];
+    }
+    menu_open = !menu_open;
+    _vna.view.hidden = !menu_open;
+    [_vna.view setUserInteractionEnabled:menu_open];
 
-- (void)handleTap:(UITapGestureRecognizer *)gesture { 
-    if (gesture.state == UIGestureRecognizerStateEnded) { 
-        [self toggleMenu]; 
-    } 
+    if (_toggleButton) {
+        [_toggleButton setTitle:(menu_open ? @"X" : @"M") forState:UIControlStateNormal];
+        [self.toggleButton.superview bringSubviewToFront:_toggleButton];
+    }
 }
 
 @end
