@@ -287,7 +287,7 @@ bool IsboxVechle = false;
 bool IsCarFuel = false;
 float AimSpeed = 1.0f;
 float g_disstance = 300.0f;
-bool Cross = false;
+int Cross = 100;
 int AimF = 0;
 int AimL = 0;
 
