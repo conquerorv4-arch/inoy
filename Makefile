@@ -15,8 +15,9 @@ M7MD_CCFLAGS = -w -std=gnu++14 -fno-rtti -fno-exceptions -DNDEBUG -Wno-module-im
 M7MD_LDFLAGS = -F. -framework JRMemory
 
 M7MD_FILES = \
-	$(wildcard *.mm) \
-	$(wildcard *.cpp) \
+	Tweak.mm \
+	MenuOverlay.mm \
+	Dumped_Offsets.cpp \
 	$(wildcard Menux/*.mm) \
 	$(wildcard 菜单/*.mm) \
 	$(wildcard View/*.mm) \
