@@ -1,3 +1,10 @@
+#include <unordered_map>
+#ifndef ICON_FA_CHECK
+#define ICON_FA_CHECK "[x]"
+#endif
+#include <string>
+
+
 // dear imgui, v1.89.7 WIP
 // (widgets code)
 
@@ -36,12 +43,38 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-// #include "gui/mywings/gui.hpp"
-// #include "blur.hpp"
+// #include <windows.h>
+
+// #include "examples/example_win32_directx11/gui.hpp"
+// #include "examples/example_win32_directx11/blur.hpp"
+// #include "examples/example_win32_directx11/hashes.hpp"
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_internal.h"
+
+struct ImGuiCompatColor {
+    float r, g, b, a;
+    ImU32 to_im_color(float alpha_mul = 1.0f, bool = true) const {
+        return ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a * alpha_mul));
+    }
+    ImVec4 to_vec4(float alpha_mul = 1.0f) const {
+        return ImVec4(r, g, b, a * alpha_mul);
+    }
+};
+
+struct ImGuiCompatGui {
+    ImGuiCompatColor button{0.18f, 0.18f, 0.22f, 1.0f};
+    ImGuiCompatColor button_hovered{0.26f, 0.26f, 0.32f, 1.0f};
+    ImGuiCompatColor button_active{0.35f, 0.35f, 0.45f, 1.0f};
+    ImGuiCompatColor border{0.30f, 0.30f, 0.36f, 1.0f};
+    ImGuiCompatColor text{1.0f, 1.0f, 1.0f, 1.0f};
+    ImGuiCompatColor text_disabled{0.60f, 0.60f, 0.65f, 1.0f};
+    ImGuiCompatColor frame_inactive{0.15f, 0.15f, 0.18f, 1.0f};
+    ImGuiCompatColor frame_active{0.25f, 0.55f, 0.95f, 1.0f};
+    ImGuiCompatColor accent_color{0.25f, 0.55f, 0.95f, 1.0f};
+};
+static ImGuiCompatGui gui;
 
 // System includes
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
@@ -79,6 +112,7 @@ Index of this file:
 #pragma clang diagnostic ignored "-Wdouble-promotion"               // warning: implicit conversion from 'float' to 'double' when passing argument to function  // using printf() is a misery with this as C++ va_arg ellipsis changes float to double.
 #pragma clang diagnostic ignored "-Wenum-enum-conversion"           // warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_')
 #pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion"// warning: bitwise operation between different enumeration types ('XXXFlags_' and 'XXXFlagsPrivate_') is deprecated
+#pragma clang diagnostic ignored "-Wmodules-import-nested-redundant"
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"  // warning: implicit conversion from 'xxx' to 'float' may lose precision
 #elif defined(__GNUC__)
 #pragma GCC diagnostic ignored "-Wpragmas"                          // warning: unknown option after '#pragma GCC diagnostic' kind
@@ -215,6 +249,7 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
                 pos.y += lines_skipped * line_height;
             }
         }
+
 
         // Lines to render
         if (line < text_end)
