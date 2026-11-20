@@ -6,10 +6,16 @@
 #include "imgui_impl_metal.h"
 
 bool menu_open = false;
+bool show_4e_menu = false;
+bool show_neverlose_menu = false;
 
-static bool testBool1 = false;
-static bool testBool2 = false;
-static float testSlider = 50.0f;
+static bool e4_opt1 = false;
+static bool e4_opt2 = false;
+static float e4_slider = 50.0f;
+
+static bool nl_opt1 = false;
+static bool nl_opt2 = false;
+static float nl_slider = 50.0f;
 
 @interface ImGuiDrawView () <MTKViewDelegate>
 @end
@@ -90,7 +96,7 @@ static float testSlider = 50.0f;
 }
 
 - (void)drawInMTKView:(MTKView *)view {
-    if (!menu_open) {
+    if (!menu_open || (!show_4e_menu && !show_neverlose_menu)) {
         return;
     }
 
@@ -119,20 +125,41 @@ static float testSlider = 50.0f;
     ImGui_ImplMetal_NewFrame(renderPassDescriptor);
     ImGui::NewFrame();
 
-    ImGui::SetNextWindowSize(ImVec2(360, 260), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin("Menu", &menu_open)) {
-        ImGui::Text("ImGui Overlay Active");
-        ImGui::Separator();
-        ImGui::Checkbox("Feature 1", &testBool1);
-        ImGui::Checkbox("Feature 2", &testBool2);
-        ImGui::SliderFloat("Value", &testSlider, 0.0f, 100.0f, "%.0f");
-        if (ImGui::Button("Close")) {
-            menu_open = false;
-            self.view.hidden = YES;
-            [self.view setUserInteractionEnabled:NO];
+    if (show_4e_menu) {
+        ImGui::SetNextWindowSize(ImVec2(360, 250), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("4E?", &show_4e_menu)) {
+            ImGui::Text("4E? Panel");
+            ImGui::Separator();
+            ImGui::Checkbox("Option 1", &e4_opt1);
+            ImGui::Checkbox("Option 2", &e4_opt2);
+            ImGui::SliderFloat("Value", &e4_slider, 0.0f, 100.0f, "%.0f");
+        }
+        ImGui::End();
+        if (!show_4e_menu) {
+            menu_open = show_neverlose_menu;
         }
     }
-    ImGui::End();
+
+    if (show_neverlose_menu) {
+        ImGui::SetNextWindowSize(ImVec2(360, 250), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("NEVERLOSE", &show_neverlose_menu)) {
+            ImGui::Text("NEVERLOSE Panel");
+            ImGui::Separator();
+            ImGui::Checkbox("Option 1", &nl_opt1);
+            ImGui::Checkbox("Option 2", &nl_opt2);
+            ImGui::SliderFloat("Value", &nl_slider, 0.0f, 100.0f, "%.0f");
+        }
+        ImGui::End();
+        if (!show_neverlose_menu) {
+            menu_open = show_4e_menu;
+        }
+    }
+
+    if (!show_4e_menu && !show_neverlose_menu) {
+        menu_open = false;
+        self.view.hidden = YES;
+        [self.view setUserInteractionEnabled:NO];
+    }
 
     ImGui::Render();
     ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(), commandBuffer, renderEncoder);
