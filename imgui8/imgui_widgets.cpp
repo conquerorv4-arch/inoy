@@ -36,8 +36,8 @@ Index of this file:
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "gui/mywings/gui.hpp"
-#include "gui/blur/blur.hpp"
+// #include "gui/mywings/gui.hpp"
+#include "blur.hpp"
 
 #include "imgui.h"
 #ifndef IMGUI_DISABLE
