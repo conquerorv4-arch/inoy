@@ -57,7 +57,7 @@
         // Setup Dear ImGui style
         //setDarkTheme();
 //          ImGui::StyleColorsClassic();     //紫色主题
-        ImGui::StyleColorsDarkMode();     //白色主题
+        ImGui::StyleColorsDark();     //白色主题
 
         
         // Setup Renderer backend
