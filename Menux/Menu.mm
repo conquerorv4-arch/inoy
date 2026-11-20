@@ -1,4 +1,3 @@
-
 #import "菜单.h"
 #import "XORstring.h"
 #include "../Image/Icon.h"
@@ -268,14 +267,37 @@ extern int FlashSpeedSpeed;
 extern bool oneshoot;
 extern int oneshootValue;
 extern int ShootValue;
-extern bool MenDeal;              
+extern bool MenDeal;
+
+// Linker fallback definitions for missing extern symbols
+bool ESPNotBot = false;
+bool GRWAR = false;
+bool IsLootBox = false;
+bool IsVehcle = false;
+bool Alert = false;
+bool 血条B = false;
+bool distancee = false;
+bool Box2 = false;
+bool Box = false;
+bool Weapon = false;
+bool 信息 = false;
+bool Skeleton = false;
+bool Line = false;
+bool IsboxVechle = false;
+bool IsCarFuel = false;
+float AimSpeed = 1.0f;
+float g_disstance = 300.0f;
+bool Cross = false;
+int AimF = 0;
+int AimL = 0;
+
 static uint8_t _md_key = 0xA5;
 
 static inline void RainbowV1(bool v) {
     MenDeal = (v ^ _md_key);
 }
 
-static inline bool VSXM() {   
+static inline bool VSXM() {
     return (MenDeal ^ _md_key);
 }
 extern bool thongtin;
@@ -290,7 +312,6 @@ namespace Settings {
     static int Tab = 0;
 }
 
-
 namespace Colors {
     const ImVec4 Black = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
     const ImVec4 DarkGray = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
@@ -298,11 +319,11 @@ namespace Colors {
     const ImVec4 LightGray = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
     const ImVec4 White = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
     const ImVec4 Gray = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
-    
+
     const ImVec4 Accent = ImVec4(0.0f, 0.45f, 0.25f, 1.00f);
     const ImVec4 AccentHover = ImVec4(0.0f, 0.55f, 0.30f, 1.00f);
     const ImVec4 AccentActive = ImVec4(0.0f, 0.65f, 0.35f, 1.00f);
-    
+
     const ImVec4 Success = ImVec4(0.0f, 0.8f, 0.3f, 1.00f);
     const ImVec4 Warning = ImVec4(1.0f, 0.7f, 0.0f, 1.00f);
     const ImVec4 Error = ImVec4(1.0f, 0.2f, 0.2f, 1.00f);
@@ -344,70 +365,71 @@ void CheckboxGroup(const char* label1, bool* v1, const char* label2, bool* v2) {
 void ApplyModernDarkTheme() {
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4* colors = style.Colors;
-    
+
     // Windows & Backgrounds
     colors[ImGuiCol_WindowBg] = Colors::Black;
     colors[ImGuiCol_ChildBg] = Colors::DarkGray;
     colors[ImGuiCol_PopupBg] = Colors::DarkGray;
     colors[ImGuiCol_MenuBarBg] = ImVec4(0.12f, 0.12f, 0.12f, 0.50f);
-    
+
     // Borders
     colors[ImGuiCol_Border] = ImVec4(0.30f, 0.30f, 0.30f, 0.60f);
     colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
     colors[ImGuiCol_Separator] = Colors::Accent;
     colors[ImGuiCol_SeparatorHovered] = Colors::AccentHover;
     colors[ImGuiCol_SeparatorActive] = Colors::AccentActive;
-    
+
     // Text
     colors[ImGuiCol_Text] = Colors::White;
     colors[ImGuiCol_TextDisabled] = Colors::Gray;
     colors[ImGuiCol_TextSelectedBg] = ImVec4(0.0f, 0.4f, 0.2f, 0.35f);
-    
+
     // Buttons
     colors[ImGuiCol_Button] = Colors::Black;
     colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
     colors[ImGuiCol_ButtonActive] = Colors::MediumGray;
-    
+
     // Frames
     colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     colors[ImGuiCol_FrameBgHovered] = ImVec4(0.20f, 0.20f, 0.20f, 1.00f);
     colors[ImGuiCol_FrameBgActive] = ImVec4(0.30f, 0.30f, 0.30f, 1.00f);
-    colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);    
+    colors[ImGuiCol_CheckMark] = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+
     // Sliders
     colors[ImGuiCol_SliderGrab] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
     colors[ImGuiCol_SliderGrabActive] = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
-    
+
     // Tabs
     colors[ImGuiCol_Tab] = Colors::Black;
     colors[ImGuiCol_TabHovered] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
     colors[ImGuiCol_TabActive] = Colors::MediumGray;
     colors[ImGuiCol_TabUnfocused] = ImVec4(0.05f, 0.05f, 0.05f, 1.00f);
     colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    
+
     // Headers
     colors[ImGuiCol_Header] = Colors::Accent;
     colors[ImGuiCol_HeaderHovered] = Colors::AccentHover;
     colors[ImGuiCol_HeaderActive] = Colors::AccentActive;
-    
+
     // Title Bar
     colors[ImGuiCol_TitleBg] = Colors::Black;
     colors[ImGuiCol_TitleBgActive] = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
     colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.08f, 0.08f, 0.08f, 0.75f);
-    
+
     // Scrollbar
     colors[ImGuiCol_ScrollbarBg] = Colors::Black;
     colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.0f, 0.3f, 0.2f, 0.60f);
     colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.0f, 0.4f, 0.25f, 0.80f);
     colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.0f, 0.5f, 0.3f, 1.00f);
-    
+
     // Resize Grip
     colors[ImGuiCol_ResizeGrip] = ImVec4(0.0f, 0.3f, 0.2f, 0.30f);
     colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.0f, 0.4f, 0.25f, 0.60f);
     colors[ImGuiCol_ResizeGripActive] = ImVec4(0.0f, 0.5f, 0.3f, 0.90f);
-    
+
     // Navigation
     colors[ImGuiCol_NavHighlight] = Colors::AccentActive;
-    
+
     // Style Settings
     style.WindowRounding = 12.0f;
     style.ChildRounding = 8.0f;
@@ -416,13 +438,13 @@ void ApplyModernDarkTheme() {
     style.ScrollbarRounding = 10.0f;
     style.GrabRounding = 6.0f;
     style.TabRounding = 6.0f;
-    
+
     style.WindowPadding = ImVec2(15, 15);
     style.FramePadding = ImVec2(12, 8);
     style.ItemSpacing = ImVec2(10, 8);
     style.ItemInnerSpacing = ImVec2(8, 6);
     style.IndentSpacing = 21.0f;
-    
+
     style.WindowBorderSize = 1.0f;
     style.ChildBorderSize = 1.0f;
     style.PopupBorderSize = 1.0f;
@@ -435,7 +457,7 @@ OverlayView *overlayView;
 
 - (instancetype)initWithFrame:(ModuleControl*)control {
     self.moduleControl = control;
-    
+
     NSString *documentsDirectory = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSString *filePath = [documentsDirectory stringByAppendingPathComponent:@"dolphins.ini"];
@@ -554,9 +576,9 @@ void DrawMainTab() {
     if (bypass_in_progress) {
         auto current_time = std::chrono::steady_clock::now();
         auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - bypass_start_time).count();
-        
+
         bypass_progress = static_cast<float>(elapsed_time) / 7000.0f;
-        
+
         if (current_message_index < total_messages) {
             auto time_since_last_message = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - last_message_time).count();
             if (time_since_last_message >= (messages[current_message_index].delay * 1000)) {
@@ -564,27 +586,27 @@ void DrawMainTab() {
                 last_message_time = current_time;
             }
         }
-        
+
         if (elapsed_time >= 7000) {
             bypass_in_progress = false;
             bypass_completed = true;
             bypass_progress = 1.0f;
         }
-        
+
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, window_alpha);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(15, 15));
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 5.0f);
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.08f, 0.08f, 0.08f, 0.95f));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.4f, 0.8f, glow_effect));
-        
+
         ImGui::BeginChild("BypassConsole", ImVec2(0, ImGui::GetTextLineHeight() * 16 * text_scale), true, ImGuiWindowFlags_NoScrollbar);
-        
+
         ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "PUBG MOBILE SECURITY BYPASS SYSTEM v1.1.0");
         ImGui::Separator();
-        
+
         ImGui::BeginChild("ConsoleContent", ImVec2(0, ImGui::GetTextLineHeight() * 12 * text_scale), false, ImGuiWindowFlags_HorizontalScrollbar);
-        
+
         for (int i = 0; i < current_message_index && i < total_messages; i++) {
             ImVec4 color;
             switch (messages[i].color) {
@@ -595,32 +617,32 @@ void DrawMainTab() {
                 case 4: color = ImVec4(0.8f, 0.2f, 1.0f, 1.0f); break;
                 default: color = Colors::White; break;
             }
-            
-            ImGui::TextColored(color, "[%02d:%02d:%03d] %s", 
-                (int)(elapsed_time/60000), 
-                (int)(elapsed_time/1000)%60, 
-                (int)elapsed_time%1000, 
+
+            ImGui::TextColored(color, "[%02d:%02d:%03d] %s",
+                (int)(elapsed_time/60000),
+                (int)(elapsed_time/1000)%60,
+                (int)elapsed_time%1000,
                 messages[i].text);
         }
-        
+
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
             ImGui::SetScrollHereY(1.0f);
         }
-        
+
         ImGui::EndChild();
         ImGui::Separator();
-        
+
         ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.2f, 0.6f, 1.0f, 1.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
         ImGui::ProgressBar(bypass_progress, ImVec2(-1, 30), "");
         ImGui::PopStyleVar();
         ImGui::PopStyleColor(2);
-        
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Status: %s", 
+
+        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Status: %s",
             bypass_in_progress ? "IN PROGRESS" : "COMPLETED");
         ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Progress: %.1f%%", bypass_progress * 100);
-        
+
         ImGui::EndChild();
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar(3);
@@ -634,31 +656,31 @@ void DrawMainTab() {
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.5f, 1.0f, 0.5f));
         ImGui::PushStyleColor(ImGuiCol_BorderShadow, ImVec4(0.0f, 0.8f, 1.0f, success_glow));
         ImGui::PushStyleColor(ImGuiCol_Text, Colors::White);
-        
+
         ImGui::BeginChild("SuccessWindow", ImVec2(0, 200), true);
-        
+
         ImGui::SetCursorPosX((ImGui::GetWindowWidth() - ImGui::CalcTextSize("BYPASS ACTIVATED SUCCESSFULLY!").x) * 0.5f);
         ImGui::TextColored(Colors::Success, "BYPASS ACTIVATED SUCCESSFULLY!");
-        
+
         ImGui::SetCursorPosX((ImGui::GetWindowWidth() - ImGui::CalcTextSize("安全绕过已成功激活!").x) * 0.5f);
         ImGui::TextColored(Colors::Info, "安全绕过已成功激活!");
-        
+
         ImGui::Dummy(ImVec2(0, 20));
-        
+
         ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 200) * 0.5f);
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(20, 15));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.7f, 0.2f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.8f, 0.3f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.1f, 0.6f, 0.1f, 1.0f));
-        
+
         if (ImGui::Button("DONE", ImVec2(200, 60))) {
             bypass_completed = false;
             AntiBan = true;
         }
-        
+
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar();
-        
+
         ImGui::EndChild();
         ImGui::PopStyleColor(4);
         ImGui::PopStyleVar(3);
@@ -672,16 +694,11 @@ void DrawMainTab() {
     ImGui::Spacing();
     ImGui::Text("%s", make_string("@mci_h").c_str());
 
+    NSString *xx1 = [NSString stringWithUTF8String:make_string("N E X T").c_str()];
+    std::wstring xx2 = j2(m8(std::string([xx1 UTF8String])));
+    std::string utf8(xx2.begin(), xx2.end());
 
-NSString *xx1 = [NSString stringWithUTF8String:make_string("N E X T").c_str()];
-
-std::wstring xx2 = j2(m8(std::string([xx1 UTF8String])));
-
-
-
-std::string utf8(xx2.begin(), xx2.end());
-
-ImGui::Text("%s", utf8.c_str());
+    ImGui::Text("%s", utf8.c_str());
     ImGui::Spacing();
 
     ImGui::PushStyleColor(ImGuiCol_Button, Colors::Black);
@@ -689,97 +706,76 @@ ImGui::Text("%s", utf8.c_str());
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::White);
 
-
-//std::string buttonLabel(a2.begin(), a2.end());
-
-NSString *b1 = [NSString stringWithUTF8String:make_string("NEXT").c_str()];
-
-//std::wstring b2 = j2(m8(std::string([b1 UTF8String])));
-
-//std::string finalUrl(b2.begin(), b2.end());
-
-//if (ImGui::Button(buttonLabel.c_str(), ImVec2(280, 140))) {
-    //NSString *urlString = [NSString stringWithUTF8String:finalUrl.c_str()];
-    //NSURL *url = [NSURL URLWithString:urlString];
-   // [[ UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-//}
-
-    //ImGui::SameLine();
-
-    //ImGui::PopStyleColor(4);
+    NSString *b1 = [NSString stringWithUTF8String:make_string("NEXT").c_str()];
+    (void)b1;
 
     ImGui::Spacing();
     std::string t1 = make_string("");
-std::wstring t2 = j2(m8(t1));
-std::string dCdTax(t2.begin(), t2.end());
+    std::wstring t2 = j2(m8(t1));
+    std::string dCdTax(t2.begin(), t2.end());
 
-
-TextRed(dCdTax.c_str());
+    TextRed(dCdTax.c_str());
 }
 
 void DrawESPTab() {
     SectionHeader("Player ESP");
-    
+
     ImGui::Columns(2, nullptr, false);
-    
+
     CheckboxGroup("Draw Line", &Line, "Draw Bone", &Skeleton);
-    //if (Skeleton) {
-      //  ImGui::SliderFloat("Skeleton Thickness", &skthick, 0.5f, 5.0f);
-    //}
-    
+
     CheckboxGroup("Draw Info", &信息, "Draw Weapon", &Weapon);
     CheckboxGroup("Draw Box 4L", &Box, "Draw Box 3D", &Box2);
     ImGui::Checkbox("Draw Distance", &distancee);
-    
+
     ImGui::NextColumn();
-    
+
     CheckboxGroup("Draw Health", &血条B, "Draw Alert", &Alert);
     CheckboxGroup("Draw Vehicle", &IsVehcle, "Draw Loot Box", &IsLootBox);
     ImGui::Checkbox("Grenade Warning", &GRWAR);
     ImGui::Checkbox("Skip AI", &ESPNotBot);
-    
+
     ImGui::Columns(1);
 }
 
 void DrawLootTab() {
     SectionHeader("Item ESP");
-    
+
     ImGui::Columns(3, nullptr, false);
-    
-        // ImGui::Checkbox("Rifle", &步枪);
+
+    // ImGui::Checkbox("Rifle", &步枪);
     // ImGui::Checkbox("Sniper", &狙击);
     // ImGui::Checkbox("SMG", &物资冲锋);
-    
+
     ImGui::NextColumn();
-    
+
     // ImGui::Checkbox("Scope", &物资倍镜);
     // ImGui::Checkbox("Armor", &物资防具);
     // ImGui::Checkbox("Accessories", &物资配件);
-    
+
     ImGui::NextColumn();
-    
+
     ImGui::Checkbox("Car Info", &IsCarFuel);
     ImGui::Checkbox("Box Vehicle", &IsboxVechle);
     // ImGui::Checkbox("Airdrop", &地铁物资);
 
-    
     ImGui::Columns(1);
 }
 
 void DrawAimTab() {
     SectionHeader("Aim Settings");
-    
+
     ImGui::Columns(2, nullptr, false);
     CheckboxGroup("AimBot", &AimBot, "Bullet Track 360", &Enable);
-TextRed("Note: Bullet Track 360 works only in TDM (close to Enemy!)");
+    TextRed("Note: Bullet Track 360 works only in TDM (close to Enemy!)");
     CheckboxGroup("Bullet Track V2", &Enablev2, "Auto Fire", &AutoFire);
     ImGui::Columns(1);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Cover Damage");
-    TextRed("Note: Use V3 for best results with 180° BT");    
+    TextRed("Note: Use V3 for best results with 180° BT");
     ImGui::Columns(3, nullptr, false);
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::Error);
     ImGui::Checkbox("FAKE DAMAGE V1", &FAKEDAMAGE);
@@ -789,41 +785,41 @@ TextRed("Note: Bullet Track 360 works only in TDM (close to Enemy!)");
     ImGui::Checkbox("FAKE DAMAGE V3", &FAKEDAMAGEV3);
     ImGui::PopStyleColor();
     ImGui::Columns(1);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Auto Stand");
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::Error);
     ImGui::Checkbox("Auto Stand V1", &AutoStandd);
     ImGui::PopStyleColor();
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Filters");
     CheckboxGroup("Ignore Knocked", &IgnoreKnocked, "Ignore AI", &IgnoreBot);
     CheckboxGroup("Vis Check", &VisCheck, "Vis Check BT", &VisCheckBT);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Aim Target");
     ImGui::RadioButton("Head", &AimL, 1); ImGui::SameLine();
     ImGui::RadioButton("Neck", &AimL, 3); ImGui::SameLine();
     ImGui::RadioButton("Body", &AimL, 2);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Aim Mode");
     ImGui::RadioButton("Fire", &AimF, 1); ImGui::SameLine();
     ImGui::RadioButton("Camera", &AimF, 2); ImGui::SameLine();
     ImGui::RadioButton("Fire & Camera", &AimF, 3);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Advanced Settings");
     ImGui::SliderInt("Aim FOV", &Cross, 1, 1000);
     ImGui::SliderFloat("Distance", &g_disstance, 1.0f, 1000.0f);
@@ -832,9 +828,9 @@ TextRed("Note: Bullet Track 360 works only in TDM (close to Enemy!)");
 
 void DrawSkinTab() {
     SectionHeader("Skin Changer");
-    
+
     ImGui::Checkbox("Enable Skin Changer", &ModSkinn);
-    
+
     if (ModSkinn) {
         preferences.Outfit = true;
         preferences.Face = true;
@@ -844,7 +840,7 @@ void DrawSkinTab() {
         preferences.Parachute = true;
         preferences.Fac = true;
         preferences.Hieuungbay = true;
-        
+
         preferences.M416 = true;
         preferences.AKM = true;
         preferences.SCARL = true;
@@ -876,7 +872,7 @@ void DrawSkinTab() {
         preferences.S12K = true;
         preferences.Machete = true;
         preferences.PAN = true;
-        
+
         preferences.Dacia = true;
         preferences.UAZ = true;
         preferences.CoupeRB = true;
@@ -888,16 +884,16 @@ void DrawSkinTab() {
         preferences.MiniBus = true;
         preferences.Boat = true;
     }
-    
-     CheckboxGroup("Kill Message", &KillMessage, "Death Box", &DeadBox);
-    
+
+    CheckboxGroup("Kill Message", &KillMessage, "Death Box", &DeadBox);
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     SectionHeader("Quick Presets");
-    
+
     ImGui::Columns(3, nullptr, false);
-    
+
     if (ImGui::Button("Preset 1", ImVec2(-1, 50))) {
         preferences.Config.Skin.XSuits = 8;
         preferences.Config.Skin.M416 = 10;
@@ -905,9 +901,9 @@ void DrawSkinTab() {
         preferences.bag = 3;
         preferences.helmet = 1;
     }
-    
+
     ImGui::NextColumn();
-    
+
     if (ImGui::Button("Preset 2", ImVec2(-1, 50))) {
         preferences.Config.Skin.XSuits = 35;
         preferences.Config.Skin.M416 = 9;
@@ -915,9 +911,9 @@ void DrawSkinTab() {
         preferences.bag = 13;
         preferences.helmet = 10;
     }
-    
+
     ImGui::NextColumn();
-    
+
     if (ImGui::Button("Preset 3", ImVec2(-1, 50))) {
         preferences.Config.Skin.XSuits = 15;
         preferences.Config.Skin.M416 = 8;
@@ -925,117 +921,117 @@ void DrawSkinTab() {
         preferences.bag = 12;
         preferences.helmet = 1;
     }
-    
+
     ImGui::Columns(1);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
-    
+
     if (ModSkinn) {
         const float buttonWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x * 2) / 3;
         ImVec4 active = Colors::White;
         ImVec4 inactive = Colors::Gray;
-        
+
         ImGui::BeginGroup();
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
-        
+
         ImGui::PushStyleColor(ImGuiCol_Button, Settings::Tab == 0 ? active : inactive);
         if (ImGui::Button("Player", ImVec2(buttonWidth, 0)))
             Settings::Tab = 0;
         ImGui::SameLine();
-        
+
         ImGui::PushStyleColor(ImGuiCol_Button, Settings::Tab == 1 ? active : inactive);
         if(ImGui::Button("Weapons", ImVec2(buttonWidth, 0)))
             Settings::Tab = 1;
         ImGui::SameLine();
-        
+
         ImGui::PushStyleColor(ImGuiCol_Button, Settings::Tab == 2 ? active : inactive);
         if(ImGui::Button("Vehicles", ImVec2(buttonWidth, 0)))
             Settings::Tab = 2;
-        
+
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar();
         ImGui::EndGroup();
-        
+
         ImGui::Spacing();
-        
+
         if (Settings::Tab == 0) {
             if (ImGui::BeginTable("##PlayerSkins", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersInner | ImGuiTableFlags_RowBg)) {
                 ImGui::TableSetupColumn("Item", ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("Skin ID", ImGuiTableColumnFlags_WidthFixed, 120);
                 ImGui::TableHeadersRow();
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Outfit");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Outfit", &preferences.Config.Skin.XSuits);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Face");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Face", &preferences.Config.Skin.XSuits);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Backpack");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Bag", &preferences.bag);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Helmet");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Helmet", &preferences.helmet);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Emote");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Emote", &ModEmote1);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Parachute");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Parachute", &preferences.Config.Skin.Parachute);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Fac");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##Fac", &preferences.Config.Skin.Fac);
-                
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("Fly Effect");
                 ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(-1);
                 ImGui::InputInt("##FlyEffect", &preferences.Config.Skin.Hieuungbay);
-                
+
                 ImGui::EndTable();
             }
         }
-        
+
         if (Settings::Tab == 1) {
             if (ImGui::BeginTable("##WeaponSkins", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersInner | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY)) {
                 ImGui::TableSetupColumn("Weapon", ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("Skin ID", ImGuiTableColumnFlags_WidthFixed, 120);
                 ImGui::TableHeadersRow();
-                
-                const char* weapons[] = {"M416", "AKM", "SCAR-L", "M762", "GROZA", "FAMAS", "AUG", "QBZ", "Honey", "M16A4", "ACE32", 
+
+                const char* weapons[] = {"M416", "AKM", "SCAR-L", "M762", "GROZA", "FAMAS", "AUG", "QBZ", "Honey", "M16A4", "ACE32",
                                         "Kar98k", "M24", "AWM", "AMR", "MK14", "MINI14", "DP-28", "MG3", "M249",
                                         "UZI", "UMP", "Thompson", "P90", "Vector", "Bizon", "S1897", "DBS", "S12K", "Machete", "Pan"};
-                
-                int* weaponIDs[] = {&preferences.Config.Skin.M416, &preferences.Config.Skin.AKM, &preferences.Config.Skin.Scar, 
+
+                int* weaponIDs[] = {&preferences.Config.Skin.M416, &preferences.Config.Skin.AKM, &preferences.Config.Skin.Scar,
                                    &preferences.Config.Skin.M762, &preferences.Config.Skin.Groza, &preferences.Config.Skin.Famas,
                                    &preferences.Config.Skin.AUG, &preferences.Config.Skin.QBZ, &preferences.Config.Skin.Honey,
                                    &preferences.Config.Skin.M16A4, &preferences.Config.Skin.ACE32, &preferences.Config.Skin.K98,
@@ -1046,7 +1042,7 @@ void DrawSkinTab() {
                                    &preferences.Config.Skin.Vector, &preferences.Config.Skin.Bizon, &preferences.Config.Skin.S1897,
                                    &preferences.Config.Skin.DBS, &preferences.Config.Skin.S12K, &preferences.Config.Skin.Machete,
                                    &preferences.Config.Skin.Pan};
-                
+
                 for (int i = 0; i < 31; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
@@ -1057,23 +1053,23 @@ void DrawSkinTab() {
                     snprintf(label, sizeof(label), "##weapon%d", i);
                     ImGui::InputInt(label, weaponIDs[i]);
                 }
-                
+
                 ImGui::EndTable();
             }
         }
-        
+
         if (Settings::Tab == 2) {
             if (ImGui::BeginTable("##VehicleSkins", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersInner | ImGuiTableFlags_RowBg)) {
                 ImGui::TableSetupColumn("Vehicle", ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableSetupColumn("Skin ID", ImGuiTableColumnFlags_WidthFixed, 120);
                 ImGui::TableHeadersRow();
-                
+
                 const char* vehicles[] = {"Dacia", "UAZ", "Coupe RB", "Motorcycle", "BigFoot", "Mirado", "Buggy", "RZR", "MiniBus", "PG-117 Boat"};
                 int* vehicleIDs[] = {&preferences.Config.Skin.Dacia, &preferences.Config.Skin.UAZ, &preferences.Config.Skin.CoupeRP,
                                     &preferences.Config.Skin.Moto, &preferences.Config.Skin.Bigfoot, &preferences.Config.Skin.Mirado,
                                     &preferences.Config.Skin.Buggy, &preferences.Config.Skin.RZR, &preferences.Config.Skin.MiniBus,
                                     &preferences.Config.Skin.Boat};
-                
+
                 for (int i = 0; i < 10; i++) {
                     ImGui::TableNextRow();
                     ImGui::TableNextColumn();
@@ -1084,7 +1080,7 @@ void DrawSkinTab() {
                     snprintf(label, sizeof(label), "##vehicle%d", i);
                     ImGui::InputInt(label, vehicleIDs[i]);
                 }
-                
+
                 ImGui::EndTable();
             }
         }
@@ -1093,11 +1089,11 @@ void DrawSkinTab() {
 
 void DrawMemoryTab() {
     SectionHeader("Memory Hacks");
-    
+
     if (ImGui::BeginTabBar("##MemoryTabs")) {
         if (ImGui::BeginTabItem("Weapon")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Basic Weapon Mods")) {
                 ImGui::Columns(2, nullptr, false);
                 CheckboxGroup("AR Sniper", &SniAR, "Full Gun", &Silenttest);
@@ -1105,107 +1101,107 @@ void DrawMemoryTab() {
                 CheckboxGroup("Gun UP V2", &SilentGodview, "No Recoil", &NoRecoil);
                 CheckboxGroup("Fast Weapon", &FastWeapon, "Weapon Size", &WeaponSize);
                 ImGui::Columns(1);
-                
+
                 if (welapongod) {
                     ImGui::SliderFloat("Gun God X", &gungodx, -50.0f, 50.0f);
                     ImGui::SliderFloat("Gun God Y", &gungody, -50.0f, 50.0f);
                     ImGui::SliderFloat("Gun God Z", &gungodz, -50.0f, 50.0f);
                 }
-                
+
                 if (WeaponSize) {
                     ImGui::SliderFloat("Size Value", &GunSize, 0.1f, 100.0f);
                 }
             }
-            
+
             if (ImGui::CollapsingHeader("Advanced Shooting")) {
                 ImGui::Columns(2, nullptr, false);
                 CheckboxGroup("No Spread", &NoSpreadBullet, "Fast Shoot", &Fastshoot);
                 CheckboxGroup("Fast Switch", &spdw, "Fast Scope", &Scope);
                 CheckboxGroup("No Shake", &NoCameraShake, "Show Damage", &showdamage);
                 ImGui::Columns(1);
-                
+
                 ImGui::Checkbox("One Shoot", &oneshoot);
                 if (oneshoot) {
                     ImGui::SliderInt("Bullets", &oneshootValue, 1, 40);
                 }
             }
-            
+
             if (ImGui::CollapsingHeader("Crosshair Mods")) {
                 ImGui::Columns(2, nullptr, false);
                 CheckboxGroup("Cross Hair", &CrossHair, "Big Cross", &CrossLong);
                 CheckboxGroup("Rainbow", &CrossHairR, "Spin", &CrossHairSpin);
                 ImGui::Columns(1);
             }
-            
+
             if (ImGui::CollapsingHeader("Hit Effects")) {
                 ImGui::Columns(2, nullptr, false);
                 CheckboxGroup("X-Hit", &HitX, "X-Hit V2", &ggxhit);
                 CheckboxGroup("X-Hit V3", &bighitV4, "X-Hit V4", &bighitV5);
                 CheckboxGroup("Rainbow", &Rainbow, "Rainbow V2", &Rainbow1);
                 ImGui::Columns(1);
-                
+
                 if (bighitV5) {
                     ImGui::SliderInt("Hit Size", &HITSIZE, 200, 9999);
                 }
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("Player")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Movement Mods")) {
                 ImGui::Columns(2, nullptr, false);
-                
+
                 ImGui::Checkbox("Boost Jump", &SuperJump);
                 if (SuperJump) {
                     ImGui::SliderFloat("Jump Height", &SuperValue, 0.0f, 0.200f);
                 }
-                
+
                 ImGui::NextColumn();
-                
+
                 CheckboxGroup("Bunny Jump", &flly, "Fly Player", &HighJump);
                 CheckboxGroup("Auto Jump", &AUOTJUMPAN, "Speed Knock", &Speedknock);
-                
+
                 ImGui::Columns(1);
-                
+
                 ImGui::Checkbox("Boost Jump V2", &jumpee);
                 if (jumpee) {
                     ImGui::SliderFloat("Jump Value", &jumped, 500.0f, 7000.0f);
                 }
-                
+
                 CheckboxGroup("Bunny Jump V2", &flyy, "Bunny Jump V3", &bunny);
             }
-            
+
             if (ImGui::CollapsingHeader("Visual Mods")) {
                 ImGui::Columns(2, nullptr, false);
                 CheckboxGroup("God View", &goodview, "No Gravity", &NoGravity);
                 CheckboxGroup("Long Peek", &Peeking, "Crazy Player", &spinplayer);
                 CheckboxGroup("Remove Fog", &NoFog, "Dead", &dead);
                 ImGui::Columns(1);
-                
+
                 ImGui::Checkbox("Player Size", &BigPlayer);
                 if (BigPlayer) {
                     ImGui::SliderFloat("Size Value", &valueplayer, 0.1f, 100.0f);
                 }
-                
+
                 ImGui::Checkbox("Wide View", &ipadview);
                 if (ipadview) {
                     ImGui::SliderInt("TPP Value", &WideValue, 50, 160);
                 }
             }
-            
+
             if (ImGui::CollapsingHeader("Swimming Mods")) {
                 CheckboxGroup("Fast Swim", &Swim, "Fast Swim V2", &FastSwimV2);
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("Vehicle")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Car Mods")) {
                 ImGui::Checkbox("Car Fly", &carfly);
                 if (carfly) {
@@ -1213,70 +1209,70 @@ void DrawMemoryTab() {
                     ImGui::SliderInt("Car Y", &cary, 0, 5000);
                     ImGui::SliderInt("Car Z", &carz, 0, 5000);
                 }
-                
+
                 ImGui::Checkbox("Car Fast", &crazycar);
                 if (crazycar) {
                     ImGui::SliderInt("Speed Value", &carvalue, 1, 2550);
                 }
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("Parachute")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Parachute Mods")) {
                 CheckboxGroup("Flash Parachute", &flashparachute, "Flash V2", &flashparachute3);
                 CheckboxGroup("Flash V3", &AutoAGHA, "UP Parachute", &flashparachute2);
                 ImGui::Checkbox("Auto Parachute", &AutoParachute);
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("Teleport")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Teleport Mods")) {
                 ImGui::Checkbox("Teleport Near Player", &TeleportToPlayer);
                 ImGui::Checkbox("Teleport Near Vehicle", &TeleportToVehicle);
                 ImGui::Checkbox("Teleport Near Loot Box", &TeleportToLootBox);
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("VIP")) {
             ImGui::Spacing();
-            
+
             TextRed("Private Features");
             ImGui::Separator();
-            
+
             if (ImGui::CollapsingHeader("Jump Mods")) {
                 ImGui::Checkbox("Peek Fly", &bPeekFly);
-                
+
                 ImGui::Checkbox("Tiger Jump", &Tigerjump);
                 if (Tigerjump) {
                     ImGui::SliderFloat("Gravity Value", &TIGER, 0.1f, 3.0f);
                 }
-                
+
                 ImGui::Checkbox("Multi Jump", &jumpeeee);
                 if (jumpeeee) {
                     ImGui::SliderFloat("Jump Value", &jumpedd, 500.0f, 10000.0f);
                 }
-                
+
                 ImGui::PushStyleColor(ImGuiCol_CheckMark, Colors::Error);
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.2f, 0.0f, 0.0f, 0.5f));
                 ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.4f, 0.0f, 0.0f, 0.8f));
                 ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
-                
+
                 if (ImGui::Checkbox("Jump Session 8", &VIPJUMP)) {
                     // Activation effect
                 }
-                
+
                 ImGui::PopStyleColor(4);
-                
+
                 if (VIPJUMP) {
                     ImGui::SliderFloat("Velocity Value", &VIPHIGH, 420.0f, 4200.0f);
                     ImGui::SliderFloat("Air Value", &SPEEDAIR, 1.0f, 500.0f);
@@ -1286,7 +1282,7 @@ void DrawMemoryTab() {
                     ImGui::SliderFloat("Game Speed", &JUMPANIMETION, 0.0f, 10.0f);
                 }
             }
-            
+
             if (ImGui::CollapsingHeader("Special Mods")) {
                 ImGui::Checkbox("God View (Fixed)", &WallShoot);
                 ImGui::Checkbox("Magic Bullet", &MagicBullet);
@@ -1297,28 +1293,28 @@ void DrawMemoryTab() {
                 }
                 ImGui::Checkbox("Change Crespo Shoot", &weaponAbovePlayerHidden);
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem("Slow Motion")) {
             ImGui::Spacing();
-            
+
             if (ImGui::CollapsingHeader("Slow Motion Mods")) {
                 ImGui::Checkbox("Slow Motion [BAN]", &SlowMotion);
                 if (SlowMotion) {
                     ImGui::SliderFloat("Gravity", &SlowMotionFactor, 0.0001f, 1.0f);
                 }
-                
+
                 ImGui::Checkbox("Slow Motion V2", &SlowMotion2);
                 if (SlowMotion2) {
                     ImGui::SliderFloat("Time", &SlowMotionFactor2, 0.01f, 1.0f);
                 }
             }
-            
+
             ImGui::EndTabItem();
         }
-        
+
         ImGui::EndTabBar();
     }
 }
@@ -1328,116 +1324,113 @@ void DrawMovementTab() {
     ImGui::SameLine();
     ImGui::Text("| You Should Turn ON Lock Status First");
     ImGui::Separator();
-    
+
     ImGui::BulletText("All Developed By");
     ImGui::SameLine();
     std::string r1 = make_string("@mci_h");
-std::wstring r2 = j2(m8(r1));
-std::string rDTCat(r2.begin(), r2.end());
+    std::wstring r2 = j2(m8(r1));
+    std::string rDTCat(r2.begin(), r2.end());
 
-TextRed(rDTCat.c_str());
+    TextRed(rDTCat.c_str());
     ImGui::Separator();
-    
+
     ImGui::BulletText("Some Options Only For");
     ImGui::SameLine();
     TextRed("Jailbreak");
     ImGui::Separator();
-    
+
     ImGui::Spacing();
-    
+
     ImGui::Checkbox("Auto Flash", &flashEnabled);
     if (flashEnabled) {
         ImGui::SliderInt("Flash Value", &FlashValue, 1, 6);
     }
-    
+
     CheckboxGroup("Auto Flying", &AutoFly, "Remove Stuck", &RemoveStuck);
     ImGui::Checkbox("More Speed <prone>", &inbta7);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    
+
     ImGui::Columns(2, nullptr, false);
-    
+
     if (ImGui::Button("GL Unlimited Speed", ImVec2(-1, 80))) {
         SpeedPlayerV2 = !SpeedPlayerV2;
     }
-    
+
     ImGui::NextColumn();
-    
+
     if (ImGui::Button("Teleport", ImVec2(-1, 80))) {
         TPCAR = !TPCAR;
     }
-    
+
     ImGui::Columns(1);
-    
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    
+
     ImGui::Columns(2, nullptr, false);
-    
+
     if (ImGui::Button("Lock Status ON", ImVec2(-1, 60))) {
         LockStatus = !LockStatus;
     }
-    
+
     ImGui::NextColumn();
-    
-static bool showActivationMessage = false;
-static bool showSuccessMessage = false;
-static float activationTime = 0.0f;
 
+    static bool showActivationMessage = false;
+    static bool showSuccessMessage = false;
+    static float activationTime = 0.0f;
 
-if (ImGui::Button(make_string("Block PUBG Hosts").c_str())) {
-    showActivationMessage = true;
-    activationTime = ImGui::GetTime();
-    showSuccessMessage = false;
-    
-    NSArray *serversToBlock = @[
-    @"gateway.pubg.com",
-    @"apollo.pubg.com",
-    @"tencentgames.pubg.com",
-    @"gameapi.pubg.com",
-    @"hkex.pubg.com",
-    @"pcweb.pubg.com",
-    @"igame.pubg.com",
-    @"qos.pubg.com",
-    @"cds.pubg.com",
-    @"i18n.pubg.com",
-    @"app-measurement.com",
-    ];
-}
+    if (ImGui::Button(make_string("Block PUBG Hosts").c_str())) {
+        showActivationMessage = true;
+        activationTime = ImGui::GetTime();
+        showSuccessMessage = false;
 
-if (showActivationMessage) {
-     ImGui::OpenPopup(make_string("Loading AntiBan...").c_str());
-    if (ImGui::BeginPopupModal(make_string("Loading AntiBan...").c_str(),
- NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), make_string("Please Wait For Loading AntiBan...").c_str());
-
-        ImGui::EndPopup();
+        NSArray *serversToBlock = @[
+        @"gateway.pubg.com",
+        @"apollo.pubg.com",
+        @"tencentgames.pubg.com",
+        @"gameapi.pubg.com",
+        @"hkex.pubg.com",
+        @"pcweb.pubg.com",
+        @"igame.pubg.com",
+        @"qos.pubg.com",
+        @"cds.pubg.com",
+        @"i18n.pubg.com",
+        @"app-measurement.com",
+        ];
+        (void)serversToBlock;
     }
-    
-    if (ImGui::GetTime() - activationTime > 7.0f) {
-        showActivationMessage = false;
-        showSuccessMessage = true;
-    }
-}
 
-if (showSuccessMessage) {
-    ImGui::OpenPopup(make_string("Done").c_str());
-    if (ImGui::BeginPopupModal(make_string("Done").c_str(),
- NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), make_string("Antiban Loaded Successfully ").c_str());
-        if (ImGui::Button(make_string("Close").c_str())) {
-
-            showSuccessMessage = false;
-            ImGui::CloseCurrentPopup();
+    if (showActivationMessage) {
+        ImGui::OpenPopup(make_string("Loading AntiBan...").c_str());
+        if (ImGui::BeginPopupModal(make_string("Loading AntiBan...").c_str(),
+            NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+            ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "%s", make_string("Please Wait For Loading AntiBan...").c_str());
+            ImGui::EndPopup();
         }
-        ImGui::EndPopup();
-    }
-}  
 
-    
+        if (ImGui::GetTime() - activationTime > 7.0f) {
+            showActivationMessage = false;
+            showSuccessMessage = true;
+        }
+    }
+
+    if (showSuccessMessage) {
+        ImGui::OpenPopup(make_string("Done").c_str());
+        if (ImGui::BeginPopupModal(make_string("Done").c_str(),
+            NULL, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove)) {
+            ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "%s", make_string("Antiban Loaded Successfully ").c_str());
+            if (ImGui::Button(make_string("Close").c_str())) {
+                showSuccessMessage = false;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     ImGui::Columns(1);
 }
 
@@ -1445,15 +1438,15 @@ void DrawSettingsTab() {
     TextRed("Cheat");
     ImGui::SameLine();
     ImGui::Text("Settings");
-    
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-    
+
     SectionHeader("Quick Load Presets");
-    
+
     ImGui::Columns(2, nullptr, false);
-    
+
     if (ImGui::Button("Load ESP", ImVec2(-1, 80))) {
         Line = true;
         Skeleton = true;
@@ -1466,9 +1459,9 @@ void DrawSettingsTab() {
         GRWAR = true;
         IsLootBox = true;
     }
-    
+
     ImGui::NextColumn();
-    
+
     if (ImGui::Button("Load Classic Full", ImVec2(-1, 80))) {
         Silenttest = true;
         spdw = true;
@@ -1484,12 +1477,12 @@ void DrawSettingsTab() {
         FlashValue = 5;
         NoCameraShake = true;
     }
-    
+
     ImGui::Columns(1);
     ImGui::Spacing();
-    
+
     ImGui::Columns(2, nullptr, false);
-    
+
     if (ImGui::Button("Load Brutal", ImVec2(-1, 80))) {
         MagicBullet = true;
         spdw = true;
@@ -1508,9 +1501,9 @@ void DrawSettingsTab() {
         NoRecoil = true;
         NoCameraShake = true;
     }
-    
+
     ImGui::NextColumn();
-    
+
     if (ImGui::Button("Unload Brutal", ImVec2(-1, 80))) {
         MagicBullet = false;
         spdw = false;
@@ -1527,10 +1520,10 @@ void DrawSettingsTab() {
         NoRecoil = false;
         NoCameraShake = false;
     }
-    
+
     ImGui::Columns(1);
     ImGui::Spacing();
-    
+
     if (ImGui::Button("Load VIP Config", ImVec2(-1, 80))) {
         LockStatus = true;
         Tigerjump = true;
@@ -1550,30 +1543,30 @@ void DrawSettingsTab() {
 -(void)drawMenuWindow {
     ImGui::CreateContext();
     ApplyModernDarkTheme();
-    
+
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowSize(ImVec2(1100, 750), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), 0, ImVec2(0.5f, 0.5f));
 
     std::string w1 = make_string("NEXT PUBGM 4.6.0");
 
-std::wstring w2 = j2(m8(w1));
-std::string wnDtu(w2.begin(), w2.end());
+    std::wstring w2 = j2(m8(w1));
+    std::string wnDtu(w2.begin(), w2.end());
 
-if (ImGui::Begin(wnDtu.c_str(), &self.moduleControl->menuStatus, ImGuiWindowFlags_NoCollapse)) {
-        
+    if (ImGui::Begin(wnDtu.c_str(), &self.moduleControl->menuStatus, ImGuiWindowFlags_NoCollapse)) {
+
         // Top Bar Info
         ImGui::PushStyleColor(ImGuiCol_Text, Colors::Info);
-        
+
         ImGui::PopStyleColor();
         ImGui::SameLine(ImGui::GetWindowWidth() - 200);
         ImGui::Text("v4.2");
         ImGui::Separator();
-        
+
         // Left Sidebar Navigation
         static int selected_tab = 0;
         const float sidebar_width = 180.0f;
-        
+
         ImGui::BeginChild("Sidebar", ImVec2(sidebar_width, 0), true);
         {
             // Header
@@ -1583,10 +1576,10 @@ if (ImGui::Begin(wnDtu.c_str(), &self.moduleControl->menuStatus, ImGuiWindowFlag
             ImGui::PopStyleColor();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             // Tab Buttons
             const char* tabs[] = {"Main", "ESP", "Loot", "Aim", "Skin", "Memory", "Movement", "Settings"};
-            
+
             for (int i = 0; i < 8; i++) {
                 if (selected_tab == i) {
                     ImGui::PushStyleColor(ImGuiCol_Button, Colors::Accent);
@@ -1595,26 +1588,26 @@ if (ImGui::Begin(wnDtu.c_str(), &self.moduleControl->menuStatus, ImGuiWindowFlag
                     ImGui::PushStyleColor(ImGuiCol_Button, Colors::Black);
                     ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gray);
                 }
-                
+
                 if (ImGui::Button(tabs[i], ImVec2(-1, 50))) {
                     selected_tab = i;
                 }
                 ImGui::PopStyleColor(2);
             }
-            
+
             ImGui::Spacing();
             ImGui::Separator();
             ImGui::Spacing();
-            
+
             // Footer Info
             ImGui::PushStyleColor(ImGuiCol_Text, Colors::Gray);
-            
+
             ImGui::PopStyleColor();
         }
         ImGui::EndChild();
-        
+
         ImGui::SameLine();
-        
+
         // Main Content Area
         ImGui::BeginChild("Content", ImVec2(0, 0), true);
         {
