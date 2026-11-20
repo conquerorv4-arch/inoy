@@ -1,10 +1,9 @@
 #ifndef SKIN_H
 #define SKIN_H
 
-///
+#include <chrono>
 
 struct JsonPreferences {
-    // ÇáãÊÛíÑÇÊ ÇáÊí Êã ÊÚÑíÝåÇ ãÓÈÞðÇ
     int xsuit = 0;
     int skinm4 = 0;
     int skinakm = 0;
@@ -120,24 +119,19 @@ struct JsonPreferences {
             int Boat = 1;
         };
 
-        sModSkin Skin; // ÇáÍÞá ÇáÎÇÕ ÈÅÚÏÇÏÇÊ ÇáÊÚÏíá
+        sModSkin Skin;
     };
 
-    sConfig Config; // ÇáÍÞá ÇáÎÇÕ ÈÇáÅÚÏÇÏÇÊ
+    sConfig Config;
 
-    // ÅÖÇÝÉ ÇáãÊÛíÑÇÊ ÇáäÇÞÕÉ åäÇ
-    bool active = false;       // ÍÇáÉ ÇáÝÚÇáíÉ (íãßäß ÊÚÏíá ÇáÞíãÉ ÇáÇÝÊÑÇÖíÉ ÈäÇÁð Úáì ãäØÞß)
-    bool inactive = true;      // ÍÇáÉ ÛíÑ ÝÚÇáÉ
-    int prevXSuits = 0;        // ÞíãÉ ÓÇÈÞÉ áÜ XSuits
-    bool start = false;        // ÍÇáÉ ÈÏÁ (ÊÃßÏ ÅÐÇ ßÇäÊ ãäØÞíÉ Ýí ÇÓÊÎÏÇãß)
+    bool active = false;
+    bool inactive = true;
+    int prevXSuits = 0;
+    bool start = false;
 };
 
-extern bool ModSkinn;
-extern bool KillMessage;
-extern bool DeadBox;
-extern JsonPreferences preferences;
+inline JsonPreferences preferences;
 
-// ÊÚÑíÝ ÇáãÊÛíÑÇÊ static
 static int helmett1 = 1;
 static int helmett2 = 1;
 static int helmett3 = 1;
@@ -145,22 +139,19 @@ static int bag1 = 1;
 static int bag2 = 1;
 static int bag3 = 1;
 
-extern int sEmote1;
-extern int sEmote2;
-extern int sEmote3;
-extern int ModEmote1;
+inline int sEmote1 = 0;
+inline int sEmote2 = 0;
+inline int sEmote3 = 0;
+inline int ModEmote1 = 0;
 
 namespace Active {
-    // ÇÓÊÎÏã extern åäÇ ÝÞØ ááÅÚáÇä Úä ÇáãÊÛíÑÇÊ
-    extern int SkinCarNew;
-    extern int SkinCarDefault;
-    extern int SkinCarMod;
+    inline int SkinCarNew = 0;
+    inline int SkinCarDefault = 0;
+    inline int SkinCarMod = 0;
 }
 
 static int prevXSuits = 1;
 static std::chrono::high_resolution_clock::time_point start;
 static bool callFunction = false;
-
-// ÊÚÑíÝ ßÇÆä preferences
 
 #endif // SKIN_H
