@@ -53,6 +53,29 @@ Index of this file:
 #ifndef IMGUI_DISABLE
 #include "imgui_internal.h"
 
+struct ImGuiCompatColor {
+    float r, g, b, a;
+    ImU32 to_im_color(float alpha_mul = 1.0f, bool = true) const {
+        return ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a * alpha_mul));
+    }
+    ImVec4 to_vec4(float alpha_mul = 1.0f) const {
+        return ImVec4(r, g, b, a * alpha_mul);
+    }
+};
+
+struct ImGuiCompatGui {
+    ImGuiCompatColor button{0.18f, 0.18f, 0.22f, 1.0f};
+    ImGuiCompatColor button_hovered{0.26f, 0.26f, 0.32f, 1.0f};
+    ImGuiCompatColor button_active{0.35f, 0.35f, 0.45f, 1.0f};
+    ImGuiCompatColor border{0.30f, 0.30f, 0.36f, 1.0f};
+    ImGuiCompatColor text{1.0f, 1.0f, 1.0f, 1.0f};
+    ImGuiCompatColor text_disabled{0.60f, 0.60f, 0.65f, 1.0f};
+    ImGuiCompatColor frame_inactive{0.15f, 0.15f, 0.18f, 1.0f};
+    ImGuiCompatColor frame_active{0.25f, 0.55f, 0.95f, 1.0f};
+    ImGuiCompatColor accent_color{0.25f, 0.55f, 0.95f, 1.0f};
+};
+static ImGuiCompatGui gui;
+
 // System includes
 #if defined(_MSC_VER) && _MSC_VER <= 1500 // MSVC 2008 or earlier
 #include <stddef.h>     // intptr_t
@@ -226,6 +249,7 @@ void ImGui::TextEx(const char* text, const char* text_end, ImGuiTextFlags flags)
                 pos.y += lines_skipped * line_height;
             }
         }
+
 
         // Lines to render
         if (line < text_end)
