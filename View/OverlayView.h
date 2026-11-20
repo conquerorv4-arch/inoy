@@ -6,7 +6,6 @@
 #include "../utils/module_tools.h"
 #include "../utils/imgui_tools.h"
 
-
 NS_ASSUME_NONNULL_BEGIN
 
 @interface OverlayView : MTKView <MTKViewDelegate>
