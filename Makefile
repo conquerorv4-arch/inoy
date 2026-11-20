@@ -28,7 +28,7 @@ M7MD_FILES = \
 	$(wildcard imgui/*.cpp) \
 	$(wildcard ESP/*.mm) \
 	$(wildcard ESP/*.cpp) \
-	$(wildcard SDK/*.hpp) \
+	$(wildcard SDK/*.cpp) \
 	$(wildcard NSURL+hook/*.m) \
 	$(wildcard MBProgressHUD/*.m) \
 	$(wildcard FCFileManager/*.m) \
