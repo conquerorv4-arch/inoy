@@ -5568,12 +5568,12 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
         sv_cursor_pos.y = ImClamp(IM_ROUND(picker_pos.y + ImSaturate(1 - V) * sv_picker_size), picker_pos.y + 2, picker_pos.y + sv_picker_size - 2);
 
         // Render Hue Bar
-        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 0 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (0 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[0], col_hues[0 + 1], col_hues[0 + 1], col_hues[0], 4, ImDrawFlags_RoundCornersLeft);
+        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
         for (int i = 1; i < 5; ++i)
             draw_list->AddRectFilledMultiColor(ImVec2(bar0_pos_x + i * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (i + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), col_hues[i], col_hues[i + 1], col_hues[i + 1], col_hues[i]);
 
-        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), gui.frame_inactive.to_im_color( ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
-        draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
+                draw_list->AddRectFilledMultiColorRounded(ImVec2(bar0_pos_x + 5 * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y), ImVec2(bar0_pos_x + (5 + 1) * (sv_picker_size / 6), picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + bars_width), ImGui::GetColorU32( ImGuiCol_FrameBg ), col_hues[5], col_hues[5 + 1], col_hues[5 + 1], col_hues[5], 4, ImDrawFlags_RoundCornersRight);
+        draw_list->AddCircleFilled( ImVec2( bar0_pos_x + 2, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), 4.f, hue_color32, 20 );
         gui.render_circle_for_horizontal_bar( ImVec2( bar0_line_x + 1, picker_pos.y + sv_picker_size + style.ItemInnerSpacing.y + 2 ), hue_color32, style.Alpha );
     }
 
@@ -5587,8 +5587,8 @@ bool ImGui::ColorPicker4(const char* label, float col[4], ImGuiColorEditFlags fl
     {
         float alpha = ImSaturate(col[3]);
         ImRect bar1_bb(picker_pos + ImVec2( 0, sv_picker_size + style.ItemInnerSpacing.y * 2 + bars_width ), picker_pos + ImVec2( sv_picker_size, sv_picker_size + style.ItemInnerSpacing.y * 2 + bars_width * 2 ) );
-        draw_list->AddRectFilled(bar1_bb.Min, bar1_bb.Max, ImColor( 0.f, 0.f, 0.f, style.Alpha ), 3 );
-        draw_list->AddRectFilledMultiColorRounded(bar1_bb.Min, bar1_bb.Max, gui.frame_inactive.to_im_color( ), ImColor( col[0], col[1], col[2], style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], style.Alpha ), 3 );
+        draw_list->AddCircleFilled( ImVec2( bar1_bb.Min.x + 2, bar1_bb.GetCenter( ).y ), 4.f, ImColor( col[0], col[1], col[2] ), 20 );
+        draw_list->AddRectFilledMultiColorRounded(bar1_bb.Min, bar1_bb.Max, ImGui::GetColorU32( ImGuiCol_FrameBg ), ImColor( col[0], col[1], col[2], style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], 0.f * style.Alpha ), ImColor( col[0], col[1], col[2], style.Alpha ), 3 );
         float bar1_line_x = IM_ROUND(picker_pos.x + (1.0f - alpha) * sv_picker_size);
         gui.render_circle_for_horizontal_bar( ImVec2( bar1_line_x + 1, bar1_bb.GetCenter( ).y ), ImColor( col[0], col[1], col[2] ), style.Alpha );
     }
@@ -5675,7 +5675,7 @@ bool ImGui::ColorButton(const char* desc_id, const ImVec4& col, ImGuiColorEditFl
             window->DrawList->AddRect(bb.Min, bb.Max, GetColorU32(ImGuiCol_FrameBg), rounding); // Color button are often in need of some sort of border
     }
 
-    window->DrawList->AddText( ImVec2( total_bb.Min.x, bb.GetCenter( ).y - label_size.y / 2 ), gui.text_disabled.to_im_color( ), desc_id, FindRenderedTextEnd( desc_id ) );
+    window->DrawList->AddText( ImVec2( total_bb.Min.x, bb.GetCenter( ).y - label_size.y / 2 ), ImGui::GetColorU32( ImGuiCol_TextDisabled ), desc_id, FindRenderedTextEnd( desc_id ) );
 
     // Drag and Drop Source
     // NB: The ActiveId test is merely an optional micro-optimization, BeginDragDropSource() does the same test.
@@ -6436,7 +6436,7 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
 
     value->second = ImLerp( value->second, ( selected ? 0.03f : hovered ? 0.015f : 0.f ), 0.03f );
 
-    RenderFrame( bb.Min, bb.Max, gui.text.to_im_color( value->second ), false, 4 );
+    RenderFrame( bb.Min, bb.Max, ImGui::GetColorU32( ImGuiCol_Text, value->second ), false, 4 );
 
     if (span_all_columns && window->DC.CurrentColumns)
         PopColumnsBackground();
