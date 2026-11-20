@@ -63,17 +63,15 @@ struct ImGuiCompatColor {
     }
 };
 
-struct ImGuiCompatGui {
-    ImGuiCompatColor button{0.18f, 0.18f, 0.22f, 1.0f};
-    ImGuiCompatColor button_hovered{0.26f, 0.26f, 0.32f, 1.0f};
-    ImGuiCompatColor button_active{0.35f, 0.35f, 0.45f, 1.0f};
-    ImGuiCompatColor border{0.30f, 0.30f, 0.36f, 1.0f};
-    ImGuiCompatColor text{1.0f, 1.0f, 1.0f, 1.0f};
-    ImGuiCompatColor text_disabled{0.60f, 0.60f, 0.65f, 1.0f};
-    ImGuiCompatColor frame_inactive{0.15f, 0.15f, 0.18f, 1.0f};
-    ImGuiCompatColor frame_active{0.25f, 0.55f, 0.95f, 1.0f};
-    ImGuiCompatColor accent_color{0.25f, 0.55f, 0.95f, 1.0f};
-};
+void render_circle_for_horizontal_bar(ImVec2 pos, ImU32 col, float alpha = 1.0f) const {
+    ImGuiWindow* w = ImGui::GetCurrentWindow();
+    if (w && w->DrawList) {
+        ImU32 c = (col & ~IM_COL32_A_MASK) | ((ImU32)(ImClamp(alpha, 0.0f, 1.0f) * 255.0f) << IM_COL32_A_SHIFT);
+        w->DrawList->AddCircleFilled(pos, 5.0f, c, 20);
+        w->DrawList->AddCircle(pos, 5.0f, IM_COL32(255, 255, 255, 220), 20, 1.2f);
+    }
+}
+
 static ImGuiCompatGui gui;
 
 // System includes
@@ -1823,7 +1821,7 @@ bool ImGui::BeginComboPopup(ImGuiID popup_id, const ImRect& bb, ImGuiComboFlags 
     PushStyleVar( ImGuiStyleVar_PopupBorderSize, 1 );
     PushStyleColor( ImGuiCol_PopupBg, gui.frame_inactive.to_vec4( 0.9f ) );
     bool ret = Begin( name, NULL, window_flags );
-    draw_blur( GetWindowDrawList( ) );
+    // draw_blur( GetWindowDrawList( ) );
     SetCursorPos( ImVec2( 8, 0 ) );
     BeginGroup( );
     PopStyleColor( );
