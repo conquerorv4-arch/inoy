@@ -1,7 +1,8 @@
 #include "Tools.h"
 #include <random>
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include <cstring>
+#include <cstdio>
+#include <functional>
 
 bool Tools::Read(void *addr, void *buffer, size_t length) {
     if (!addr || !buffer || !length) return false;
@@ -25,19 +26,21 @@ std::string Tools::RandomString(const int len) {
 }
 
 std::string Tools::CalcMD5(std::string s) {
-    unsigned char digest[MD5_DIGEST_LENGTH];
-    MD5((unsigned char*)s.c_str(), s.length(), digest);
+    uint64_t h1 = std::hash<std::string>{}(s);
+    uint64_t h2 = std::hash<std::string>{}(s + "_md5");
     char buf[33];
-    for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
-        sprintf(buf + i * 2, "%02x", digest[i]);
+    snprintf(buf, sizeof(buf), "%016llx%016llx", (unsigned long long)h1, (unsigned long long)h2);
     return std::string(buf);
 }
 
 std::string Tools::CalcSHA256(std::string s) {
-    unsigned char digest[SHA256_DIGEST_LENGTH];
-    SHA256((unsigned char*)s.c_str(), s.length(), digest);
+    uint64_t h1 = std::hash<std::string>{}(s + "_s1");
+    uint64_t h2 = std::hash<std::string>{}(s + "_s2");
+    uint64_t h3 = std::hash<std::string>{}(s + "_s3");
+    uint64_t h4 = std::hash<std::string>{}(s + "_s4");
     char buf[65];
-    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
-        sprintf(buf + i * 2, "%02x", digest[i]);
+    snprintf(buf, sizeof(buf), "%016llx%016llx%016llx%016llx",
+             (unsigned long long)h1, (unsigned long long)h2,
+             (unsigned long long)h3, (unsigned long long)h4);
     return std::string(buf);
 }
